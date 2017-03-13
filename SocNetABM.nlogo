@@ -207,7 +207,6 @@ end
 
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -260,7 +259,7 @@ th2-signal
 th2-signal
 0.1
 0.9
-0.496
+0.499
 0.001
 1
 NIL
