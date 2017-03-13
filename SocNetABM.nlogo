@@ -205,8 +205,6 @@ to set-researcher-colors
   ]
 end
 
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -288,8 +286,8 @@ SLIDER
 max-prior
 max-prior
 1
-10001
-5.0
+10000
+4.0
 1
 1
 NIL
@@ -317,7 +315,7 @@ SLIDER
 109
 scientists
 scientists
-4
+3
 100
 10.0
 1
