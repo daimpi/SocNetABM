@@ -2,7 +2,7 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheo
 
 globals [th-i-signal]
 
-
+__includes ["protocol.nls"]
 
 
 
@@ -126,18 +126,18 @@ end
 to pull
   let mysignal item mytheory th-i-signal
   ; The binominal distribution is approximated by the normal distribution with
-  ; the same mean and variance. This approximation is highly accurate for all 
-  ; parameter values from the interface. 
-  ; B/c the normal distribution is a continuous distribution the outcome is 
-  ; rounded and there is a safety check which truncates the distribution at 0, 
+  ; the same mean and variance. This approximation is highly accurate for all
+  ; parameter values from the interface.
+  ; B/c the normal distribution is a continuous distribution the outcome is
+  ; rounded and there is a safety check which truncates the distribution at 0,
   ; to prevent negative numbers of successes.
-  let successes-normal round random-normal 
+  let successes-normal round random-normal
   (pulls * mysignal) sqrt (pulls * mysignal * (1 - mysignal) )
   ifelse successes-normal > 0 [
     set successes successes-normal
   ][
     set successes 0
-  ]  
+  ]
 end
 
 
@@ -217,7 +217,6 @@ to set-researcher-colors
     set color turquoise
   ]
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -794,6 +793,76 @@ NetLogo 6.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="base-run" repetitions="10000" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="10000"/>
+    <metric>successful-run</metric>
+    <metric>average-jumps</metric>
+    <metric>run-end-scientists "th1"</metric>
+    <metric>run-end-scientists "th2"</metric>
+    <enumeratedValueSet variable="network-structure">
+      <value value="&quot;cycle&quot;"/>
+      <value value="&quot;wheel&quot;"/>
+      <value value="&quot;complete&quot;"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
+    <enumeratedValueSet variable="th1-signal">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="th2-signal">
+      <value value="0.499"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pulls">
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-prior">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="strategy-threshold">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="jump-threshold">
+      <value value="1"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="extreme-priors" repetitions="10000" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="10000"/>
+    <metric>successful-run</metric>
+    <metric>average-jumps</metric>
+    <metric>run-end-scientists "th1"</metric>
+    <metric>run-end-scientists "th2"</metric>
+    <enumeratedValueSet variable="network-structure">
+      <value value="&quot;cycle&quot;"/>
+      <value value="&quot;wheel&quot;"/>
+      <value value="&quot;complete&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="scientists">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="th1-signal">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="th2-signal">
+      <value value="0.499"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pulls">
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-prior">
+      <value value="10000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="strategy-threshold">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="jump-threshold">
+      <value value="1"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default

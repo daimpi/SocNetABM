@@ -1,0 +1,42 @@
+; the reporters for the behaviorspace run
+
+
+; reports 1 if scientists converged on the best theory (th1) by the end of the 
+; run, 0 otherwise
+to-report successful-run
+  ifelse count turtles with [mytheory = 0] = scientists [
+    report 1
+  ][
+    report 0
+  ]
+end
+
+
+
+
+
+; reports the number of researchers on th# at the end of the run 
+to-report run-end-scientists [th#]
+  if th# = "th1" [
+    set th# 0
+  ]
+  if th# = "th2" [
+    set th# 1
+  ]  
+  report count turtles with [mytheory = th#]
+end
+
+
+
+
+
+to-report average-jumps
+  let jumps 0
+  let avgjumps 0
+  ask turtles [
+    set jumps times-jumped + jumps
+  ]
+  set avgjumps (jumps / scientists)
+  report avgjumps
+end
+
