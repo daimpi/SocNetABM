@@ -51,8 +51,9 @@ end
 
 
 to-report init-ab
-  ; addition of constant to prevent 0 from occurring
-  report (random-float max-prior + 1 / 10000)
+  ; this formulation prevents drawing values of zero. It reports
+  ; a random-float from the intervall (0 , max-prior]
+  report (max-prior - random-float max-prior)
 end
 
 
@@ -161,7 +162,7 @@ to compute-strategies
   let max-score max current-theory-info
   let best-th-position position max-score current-theory-info
   ; set cur-best-th (list best-th-position)
-  ; if the other entry is in the intervall for best theories it is als added
+  ; if the other entry is in the intervall for best theories it is also added
   let other-score item ((best-th-position + 1) mod 2) current-theory-info
   ifelse other-score >= max-score * strategy-threshold [
     set cur-best-th [0 1]
