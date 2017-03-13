@@ -113,9 +113,9 @@ to create-network-wheel
   ; and then the royal family connects to all other scientists
   create-network-cycle but-first turtle-list
   ask first turtle-list [
-      setxy 0 0
-      create-links-with other turtles
-    ]
+    setxy 0 0
+    create-links-with other turtles
+  ]
 end
 
 
@@ -125,7 +125,19 @@ end
 ; the improvement of pulls via critiacal interaction is not yet implemented
 to pull
   let mysignal item mytheory th-i-signal
-  set successes random-normal (pulls * mysignal) sqrt (pulls * mysignal * (1 - mysignal) )
+  ; The binominal distribution is approximated by the normal distribution with
+  ; the same mean and variance. This approximation is highly accurate for all 
+  ; parameter values from the interface. 
+  ; B/c the normal distribution is a continuous distribution the outcome is 
+  ; rounded and there is a safety check which truncates the distribution at 0, 
+  ; to prevent negative numbers of successes.
+  let successes-normal round random-normal 
+  (pulls * mysignal) sqrt (pulls * mysignal * (1 - mysignal) )
+  ifelse successes-normal > 0 [
+    set successes successes-normal
+  ][
+    set successes 0
+  ]  
 end
 
 
