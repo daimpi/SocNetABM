@@ -797,7 +797,7 @@ NetLogo 6.0
   <experiment name="base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="10000"/>
+    <timeLimit steps="3000"/>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
     <metric>run-end-scientists "th1"</metric>
