@@ -39,9 +39,9 @@ to go
     share
     calc-posterior
     compute-strategies
-    if not member? mytheory cur-best-th [
-      act-on-strategies
-    ]
+  ]
+  ask turtles with [not member? mytheory cur-best-th] [
+    act-on-strategies
   ]
   tick
 end
