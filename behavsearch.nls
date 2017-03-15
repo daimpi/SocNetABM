@@ -1,0 +1,60 @@
+; contains procedures and reporters for bahaviorsearch
+globals [steplimit sucruns]
+
+
+
+; initialization setup for behaviorsearch
+to setup-bs-init
+  let steplimit-cache steplimit
+  clear-all
+  set steplimit steplimit-cache
+end
+
+
+
+
+
+to setup-bs
+  let steplimit-cache steplimit
+  let sucruns-cache sucruns
+  clear-all
+  set steplimit steplimit-cache
+  set sucruns sucruns-cache
+  set th-i-signal list th1-signal th2-signal
+  set-default-shape turtles "person"
+  create-turtles scientists [
+    let a1 init-ab
+    let b1 init-ab
+    let a2 init-ab
+    let b2 init-ab
+    set a list a1 a2
+    set b (list (a1 + b1) (a2 + b2))
+    set current-theory-info [0 0]
+    calc-posterior
+    compute-strategies
+    set mytheory one-of cur-best-th
+    set-researcher-colors
+  ]
+  create-network
+  reset-ticks
+end
+
+
+
+
+
+to go-bs [repeats]
+  repeat repeats [
+    setup-bs
+    repeat steplimit [go]
+    set sucruns sucruns + successful-run
+  ]
+end
+
+
+
+
+
+to-report fitness [repeats]
+  report ((599 / 780) * repeats - sucruns) ^ 2
+end

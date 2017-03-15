@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE search SYSTEM "behaviorsearch.dtd">
+<search>
+<bsearchVersionNumber>1,02</bsearchVersionNumber>
+<modelInfo>
+<modelFile>C:\Users\daimp\Documents\SocNetABM\SocNetABM.nlogo</modelFile>
+<modelSetupCommands>setup-bs-init</modelSetupCommands>
+<modelStepCommands>go-bs 100</modelStepCommands>
+<modelStopCondition/>
+<modelStepLimit>1</modelStepLimit>
+<modelMetricReporter>fitness 100</modelMetricReporter>
+<modelMeasureIf>true</modelMeasureIf>
+</modelInfo>
+<fitnessInfo>
+<fitnessMinimized>true</fitnessMinimized>
+<fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
+<fitnessSamplingReplications>2</fitnessSamplingReplications>
+<fitnessCombineReplications>MEAN</fitnessCombineReplications>
+</fitnessInfo>
+<searchSpace>
+<paramSpec>["steplimit" [3000 1000 10000]]</paramSpec>
+<paramSpec>["th1-signal" 0.5]</paramSpec>
+<paramSpec>["th2-signal" 0.499]</paramSpec>
+<paramSpec>["pulls" 1000]</paramSpec>
+<paramSpec>["max-prior"  10000]</paramSpec>
+<paramSpec>["jump-threshold" 1]</paramSpec>
+<paramSpec>["scientists" 7]</paramSpec>
+<paramSpec>["strategy-threshold" 1]</paramSpec>
+<paramSpec>["network-structure" "cycle"]</paramSpec>
+</searchSpace>
+<searchMethod type="StandardGA">
+<searchMethodParameter name="mutation-rate" value="0.03"/>
+<searchMethodParameter name="population-size" value="50"/>
+<searchMethodParameter name="crossover-rate" value="0.7"/>
+<searchMethodParameter name="population-model" value="generational"/>
+<searchMethodParameter name="tournament-size" value="3"/>
+</searchMethod>
+<chromosomeRepresentation type="GrayBinaryChromosome"/>
+<caching>true</caching>
+<evaluationLimit>10</evaluationLimit>
+<bestCheckingNumReplications>0</bestCheckingNumReplications>
+</search>

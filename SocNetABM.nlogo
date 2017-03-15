@@ -2,7 +2,7 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheo
 
 globals [th-i-signal]
 
-__includes ["protocol.nls"]
+__includes ["protocol.nls" "behavsearch.nls"]
 
 
 
