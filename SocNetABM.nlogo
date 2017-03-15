@@ -1,6 +1,6 @@
 turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheory successes]
 
-globals [th-i-signal]
+globals [th-i-signal indiff-count]
 
 __includes ["protocol.nls"]
 
@@ -178,6 +178,7 @@ to compute-strategies
   let other-score item ((best-th-position + 1) mod 2) current-theory-info
   ifelse other-score >= max-score * strategy-threshold [
     set cur-best-th [0 1]
+    set indiff-count indiff-count + 1
   ][
     set cur-best-th (list best-th-position)
   ]
@@ -800,6 +801,7 @@ NetLogo 6.0
     <timeLimit steps="3000"/>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
+    <metric>avg-indiff-time</metric>
     <metric>run-end-scientists "th1"</metric>
     <metric>run-end-scientists "th2"</metric>
     <enumeratedValueSet variable="network-structure">
@@ -833,6 +835,7 @@ NetLogo 6.0
     <timeLimit steps="10000"/>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
+    <metric>avg-indiff-time</metric>
     <metric>run-end-scientists "th1"</metric>
     <metric>run-end-scientists "th2"</metric>
     <enumeratedValueSet variable="network-structure">

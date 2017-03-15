@@ -15,7 +15,7 @@ end
 
 
 
-; reports the number of researchers on th# at the end of the run 
+; reports the number of researchers on th# at the end of the run
 to-report run-end-scientists [th#]
   if th# = "th1" [
     set th# 0
@@ -38,5 +38,16 @@ to-report average-jumps
   ]
   set avgjumps (jumps / scientists)
   report avgjumps
+end
+
+
+
+
+
+; reports the average proportion of time the researchers considered both 
+; theories equally good. The +1 accounts for the extra calculation already 
+; taking place during the setup
+to-report avg-indiff-time
+  report (indiff-count / (scientists * (ticks + 1)))
 end
 
