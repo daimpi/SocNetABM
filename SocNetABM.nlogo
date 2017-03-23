@@ -1,4 +1,4 @@
-turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheory successes]
+turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheory successes subj-th-i-signal]
 
 globals [th-i-signal indiff-count]
 
@@ -22,6 +22,7 @@ to setup
     compute-strategies
     set mytheory one-of cur-best-th
     set-researcher-colors
+    set subj-th-i-signal th-i-signal
   ]
   create-network
   reset-ticks
@@ -34,6 +35,10 @@ end
 to go
   ask turtles [
     pull
+    integrate-own-pull-info
+    if critical-interaction [
+      calc-posterior
+    ]
   ]
   ask turtles [
     share
@@ -110,8 +115,8 @@ end
 to create-network-wheel
   ; first the cycle is created...
   let turtle-list sort turtles
-  ; and then the royal family connects to all other scientists
   create-network-cycle but-first turtle-list
+  ; and then the royal family connects to all other scientists
   ask first turtle-list [
     setxy 0 0
     create-links-with other turtles
@@ -124,7 +129,8 @@ end
 
 ; the improvement of pulls via critiacal interaction is not yet implemented
 to pull
-  let mysignal item mytheory th-i-signal
+  let mysignal item mytheory subj-th-i-signal
+  set successes [0 0]
   ; The binominal distribution is approximated by the normal distribution with
   ; the same mean and variance. This approximation is highly accurate for all
   ; parameter values from the interface.
@@ -133,11 +139,20 @@ to pull
   ; to prevent negative numbers of successes.
   let successes-normal round random-normal
   (pulls * mysignal) sqrt (pulls * mysignal * (1 - mysignal) )
-  ifelse successes-normal > 0 [
-    set successes successes-normal
-  ][
-    set successes 0
+  if successes-normal > 0 [
+    set successes replace-item mytheory successes successes-normal
   ]
+
+end
+
+
+
+
+
+; The information the scientist has obtained via her own pulls is integrated into her memory
+to integrate-own-pull-info
+  set a (map + a successes)
+  set b replace-item mytheory b (item mytheory b + pulls)
 end
 
 
@@ -149,9 +164,15 @@ to share
   ; first entry is th1 2nd is th2
   let successvec [0 0]
   let pullcounter [0 0]
-  ask (turtle-set link-neighbors self) [
-    set successvec replace-item mytheory successvec (item mytheory successvec + successes)
-    set pullcounter replace-item mytheory pullcounter (item mytheory pullcounter + pulls)
+  let pulls-th1 list pulls 0
+  let pulls-th2 list 0 pulls
+  ask link-neighbors [
+    set successvec (map + successvec successes)
+    ifelse mytheory = 0 [
+      set pullcounter (map + pullcounter pulls-th1)
+    ][
+      set pullcounter (map + pullcounter pulls-th2)
+    ]
   ]
   set a (map + a successvec)
   set b (map + b pullcounter)
@@ -182,14 +203,6 @@ to compute-strategies
   ][
     set cur-best-th (list best-th-position)
   ]
-  ; let best-intervall (max current-theory-info * strategy-threshold)
-  ; let i 0
-  ; foreach current-theory-info [ [cur-score] ->
-    ; if cur-score >= best-intervall [
-      ; set cur-best-th lput i
-    ; ]
-    ; set i i + 1
-  ; ]
 end
 
 
@@ -387,19 +400,19 @@ NIL
 
 CHOOSER
 13
-411
+404
 151
-456
+449
 network-structure
 network-structure
 "cycle" "wheel" "complete"
 0
 
 PLOT
-11
-474
-211
-624
+663
+12
+863
+162
 Popularity
 Time steps
 scientists
@@ -413,6 +426,32 @@ false
 PENS
 "best theory" 1.0 0 -2674135 true "" "plot count turtles with [mytheory = 0]"
 "not-best-theory" 1.0 0 -14835848 true "" "plot count turtles with [mytheory = 1]"
+
+SWITCH
+13
+460
+167
+493
+critical-interaction
+critical-interaction
+1
+1
+-1000
+
+SLIDER
+13
+508
+185
+541
+crit-strength
+crit-strength
+1 / 10000
+1 / 10
+0.001
+1 / 10000
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -790,7 +829,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0
+NetLogo 6.0.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
