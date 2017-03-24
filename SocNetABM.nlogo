@@ -1,6 +1,6 @@
 turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheory successes subj-th-i-signal]
 
-globals [th-i-signal indiff-count]
+globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2]
 
 __includes ["protocol.nls"]
 
@@ -42,7 +42,9 @@ to go
   ]
   ask turtles [
     share
-    calc-posterior
+    if not critical-interaction [
+      calc-posterior
+    ]
     compute-strategies
   ]
   ask turtles with [not member? mytheory cur-best-th] [
@@ -127,7 +129,7 @@ end
 
 
 
-; the improvement of pulls via critiacal interaction is not yet implemented
+; the improvement of pulls via critically interaction is not yet implemented
 to pull
   let mysignal item mytheory subj-th-i-signal
   set successes [0 0]
@@ -161,21 +163,52 @@ end
 
 ; for high number of scientists in complete networks this should be optimized, but first integrate the critical interaction
 to share
+  let cur-turtle self
   ; first entry is th1 2nd is th2
-  let successvec [0 0]
-  let pullcounter [0 0]
+  let successvec 0
+  let pullcounter 0
   let pulls-th1 list pulls 0
   let pulls-th2 list 0 pulls
   ask link-neighbors [
-    set successvec (map + successvec successes)
+    set successvec successes
     ifelse mytheory = 0 [
-      set pullcounter (map + pullcounter pulls-th1)
+      set pullcounter pulls-th1
     ][
-      set pullcounter (map + pullcounter pulls-th2)
+      set pullcounter pulls-th2
+    ]
+    ask cur-turtle [
+      set a (map + a successvec)
+      set b (map + b pullcounter)
+      if critical-interaction [
+        evaluate-critically
+      ]
+    ]
+  ]  
+end
+
+
+
+
+
+to evaluate-critically
+  let old-theory-info current-theory-info
+  calc-posterior
+  let diff-theory-info (map - current-theory-info old-theory-info)
+  ifelse mytheory = 0 [
+    if item 0 diff-theory-info < 0 or item 1 diff-theory-info > 0 [
+      set crit-interactions-th1 crit-interactions-th1 + 1
+      let old-th-1-signal item 0 subj-th-i-signal
+      set subj-th-i-signal replace-item 0 subj-th-i-signal (old-th-1-signal 
+        + (1 - old-th-1-signal) * crit-strength)      
+    ]
+  ][
+    if item 0 diff-theory-info > 0 or item 1 diff-theory-info < 0 [
+      set crit-interactions-th2 crit-interactions-th2 + 1
+      let old-th-2-signal item 1 subj-th-i-signal
+      set subj-th-i-signal replace-item 1 subj-th-i-signal (old-th-2-signal 
+        + (0 - old-th-2-signal) * crit-strength)
     ]
   ]
-  set a (map + a successvec)
-  set b (map + b pullcounter)
 end
 
 
