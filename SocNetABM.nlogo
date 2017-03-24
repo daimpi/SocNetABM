@@ -1,4 +1,4 @@
-turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheory successes subj-th-i-signal critically-interacted]
+turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheory successes subj-th-i-signal crit-interact-lock]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2]
 
@@ -23,7 +23,6 @@ to setup
     set mytheory one-of cur-best-th
     set-researcher-colors
     set subj-th-i-signal th-i-signal
-    set critically-interacted false
   ]
   create-network
   reset-ticks
@@ -38,16 +37,18 @@ to go
     pull
     integrate-own-pull-info
     if critical-interaction [
-      set critically-interacted false
       calc-posterior
     ]
   ]
   ask turtles [
     share
-    calc-posterior    
+    calc-posterior
     compute-strategies
+    if crit-interact-lock > 0 [
+      set crit-interact-lock crit-interact-lock - 1
+    ]
   ]
-  ask turtles with [not critically-interacted 
+  ask turtles with [crit-interact-lock = 0
     and not member? mytheory cur-best-th] [
     act-on-strategies
   ]
@@ -135,7 +136,7 @@ end
 ; parameter values from the interface.
 ; B/c the normal distribution is a continuous distribution the outcome is
 ; rounded and there is a safety check which costrains the distribution to the
-; intervall [0, pulls] to prevent negative- or higher than pulls numbers of 
+; intervall [0, pulls] to prevent negative- or higher than pulls numbers of
 ; successes
 to pull
   let mysignal item mytheory subj-th-i-signal
@@ -189,7 +190,7 @@ to share
         evaluate-critically
       ]
     ]
-  ]  
+  ]
 end
 
 
@@ -201,19 +202,23 @@ to evaluate-critically
   calc-posterior
   let diff-theory-info (map - current-theory-info old-theory-info)
   ifelse mytheory = 0 [
-    if item 0 diff-theory-info < 0 or item 1 diff-theory-info > 0 [    
+    if item 0 diff-theory-info < 0 or item 1 diff-theory-info > 0 [
       set crit-interactions-th1 crit-interactions-th1 + 1
-      set critically-interacted true
+      if crit-interact-lock = 0 [
+        set crit-interact-lock crit-interact-lock-default
+      ]
       let old-th-1-signal item 0 subj-th-i-signal
-      set subj-th-i-signal replace-item 0 subj-th-i-signal (old-th-1-signal 
-        + (1 - old-th-1-signal) * crit-strength)      
+      set subj-th-i-signal replace-item 0 subj-th-i-signal (old-th-1-signal
+        + (1 - old-th-1-signal) * crit-strength)
     ]
   ][
     if item 0 diff-theory-info > 0 or item 1 diff-theory-info < 0 [
-      set critically-interacted true
+      if crit-interact-lock = 0 [
+        set crit-interact-lock crit-interact-lock-default
+      ]
       set crit-interactions-th2 crit-interactions-th2 + 1
       let old-th-2-signal item 1 subj-th-i-signal
-      set subj-th-i-signal replace-item 1 subj-th-i-signal (old-th-2-signal 
+      set subj-th-i-signal replace-item 1 subj-th-i-signal (old-th-2-signal
         + (0 - old-th-2-signal) * crit-strength)
     ]
   ]
@@ -490,6 +495,21 @@ crit-strength
 1 / 10
 0.001
 1 / 10000
+1
+NIL
+HORIZONTAL
+
+SLIDER
+14
+552
+198
+585
+crit-interact-lock-default
+crit-interact-lock-default
+0
+100
+1.0
+1
 1
 NIL
 HORIZONTAL
