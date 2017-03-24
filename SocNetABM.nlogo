@@ -130,22 +130,25 @@ end
 
 
 
-; the improvement of pulls via critically interaction is not yet implemented
+; The binominal distribution is approximated by the normal distribution with
+; the same mean and variance. This approximation is highly accurate for all
+; parameter values from the interface.
+; B/c the normal distribution is a continuous distribution the outcome is
+; rounded and there is a safety check which costrains the distribution to the
+; intervall [0, pulls] to prevent negative- or higher than pulls numbers of 
+; successes
 to pull
   let mysignal item mytheory subj-th-i-signal
   set successes [0 0]
-  ; The binominal distribution is approximated by the normal distribution with
-  ; the same mean and variance. This approximation is highly accurate for all
-  ; parameter values from the interface.
-  ; B/c the normal distribution is a continuous distribution the outcome is
-  ; rounded and there is a safety check which truncates the distribution at 0,
-  ; to prevent negative numbers of successes.
   let successes-normal round random-normal
   (pulls * mysignal) sqrt (pulls * mysignal * (1 - mysignal) )
-  if successes-normal > 0 [
+  ifelse successes-normal > 0 and successes-normal <= pulls [
     set successes replace-item mytheory successes successes-normal
+  ][
+    if successes-normal > pulls [
+      set successes replace-item mytheory successes pulls
+    ]
   ]
-
 end
 
 
