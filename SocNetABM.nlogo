@@ -1,6 +1,8 @@
-turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheory successes subj-th-i-signal]
+turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info 
+  mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
-globals [th-i-signal indiff-count]
+globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
+  confidence-cutoff converged-ticks]
 
 __includes ["protocol.nls"]
 
@@ -8,6 +10,7 @@ __includes ["protocol.nls"]
 
 to setup
   clear-all
+  init-hidden-variables
   set th-i-signal list th1-signal th2-signal
   set-default-shape turtles "person"
   create-turtles scientists [
@@ -32,6 +35,15 @@ end
 
 
 
+; initializes the hidden variables which (= not set in the interface)
+to init-hidden-variables
+  set confidence-cutoff 100
+end
+
+
+
+
+
 to go
   ask turtles [
     pull
@@ -44,8 +56,12 @@ to go
     share
     calc-posterior
     compute-strategies
+    if crit-interact-lock > 0 [
+      set crit-interact-lock crit-interact-lock - 1
+    ]
   ]
-  ask turtles with [not member? mytheory cur-best-th] [
+  ask turtles with [crit-interact-lock = 0
+    and not member? mytheory cur-best-th] [
     act-on-strategies
   ]
   tick
@@ -127,22 +143,25 @@ end
 
 
 
-; the improvement of pulls via critiacal interaction is not yet implemented
+; The binominal distribution is approximated by the normal distribution with
+; the same mean and variance. This approximation is highly accurate for all
+; parameter values from the interface.
+; B/c the normal distribution is a continuous distribution the outcome is
+; rounded and there is a safety check which costrains the distribution to the
+; intervall [0, pulls] to prevent negative- or higher than pulls numbers of
+; successes
 to pull
   let mysignal item mytheory subj-th-i-signal
   set successes [0 0]
-  ; The binominal distribution is approximated by the normal distribution with
-  ; the same mean and variance. This approximation is highly accurate for all
-  ; parameter values from the interface.
-  ; B/c the normal distribution is a continuous distribution the outcome is
-  ; rounded and there is a safety check which truncates the distribution at 0,
-  ; to prevent negative numbers of successes.
   let successes-normal round random-normal
   (pulls * mysignal) sqrt (pulls * mysignal * (1 - mysignal) )
-  if successes-normal > 0 [
+  ifelse successes-normal > 0 and successes-normal <= pulls [
     set successes replace-item mytheory successes successes-normal
+  ][
+    if successes-normal > pulls [
+      set successes replace-item mytheory successes pulls
+    ]
   ]
-
 end
 
 
@@ -161,21 +180,60 @@ end
 
 ; for high number of scientists in complete networks this should be optimized, but first integrate the critical interaction
 to share
+  let cur-turtle self
   ; first entry is th1 2nd is th2
-  let successvec [0 0]
-  let pullcounter [0 0]
+  let successvec 0
+  let pullcounter 0
   let pulls-th1 list pulls 0
   let pulls-th2 list 0 pulls
+  let neighbor-theory 0
   ask link-neighbors [
-    set successvec (map + successvec successes)
+    set successvec successes
     ifelse mytheory = 0 [
-      set pullcounter (map + pullcounter pulls-th1)
+      set pullcounter pulls-th1
     ][
-      set pullcounter (map + pullcounter pulls-th2)
+      set neighbor-theory 1
+      set pullcounter pulls-th2
+    ]
+    ask cur-turtle [
+      set a (map + a successvec)
+      set b (map + b pullcounter)
+      if critical-interaction and mytheory != neighbor-theory [
+        evaluate-critically
+      ]
     ]
   ]
-  set a (map + a successvec)
-  set b (map + b pullcounter)
+end
+
+
+
+
+
+to evaluate-critically
+  let old-theory-info current-theory-info
+  calc-posterior
+  let diff-theory-info (map - current-theory-info old-theory-info)
+  ifelse mytheory = 0 [
+    if item 0 diff-theory-info < 0 or item 1 diff-theory-info > 0 [
+      set crit-interactions-th1 crit-interactions-th1 + 1
+      if crit-interact-lock = 0 [
+        set crit-interact-lock crit-interact-lock-default
+      ]
+      let old-th-1-signal item 0 subj-th-i-signal
+      set subj-th-i-signal replace-item 0 subj-th-i-signal (old-th-1-signal
+        + (1 - old-th-1-signal) * crit-strength)
+    ]
+  ][
+    if item 0 diff-theory-info > 0 or item 1 diff-theory-info < 0 [
+      if crit-interact-lock = 0 [
+        set crit-interact-lock crit-interact-lock-default
+      ]
+      set crit-interactions-th2 crit-interactions-th2 + 1
+      let old-th-2-signal item 1 subj-th-i-signal
+      set subj-th-i-signal replace-item 1 subj-th-i-signal (old-th-2-signal
+        + (0 - old-th-2-signal) * crit-strength)
+    ]
+  ]
 end
 
 
@@ -231,6 +289,28 @@ to set-researcher-colors
     set color turquoise
   ]
 end
+
+
+
+
+
+; this procedure makes only sense in case scientist have converged
+to calc-confidence
+  let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [item mytheory subj-th-i-signal]
+  ; experimental results for worst signal yielding mean - 1 standard deviation
+  let experiment-floor floor (worst-signal * pulls - sqrt (pulls * worst-signal * (1 - worst-signal)))
+  if experiment-floor < 0 [set experiment-floor 0]
+  if experiment-floor > pulls [set experiment-floor pulls]
+  ask turtles [
+    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info * strategy-threshold
+    ifelse (experiment-floor / pulls < belief-to-beat) [
+      set confidence ((belief-to-beat * item mytheory b - item mytheory a) / (experiment-floor - belief-to-beat * pulls))
+    ][
+      set confidence 10 ^ 6
+    ]
+  ]
+end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -449,6 +529,21 @@ crit-strength
 1 / 10
 0.001
 1 / 10000
+1
+NIL
+HORIZONTAL
+
+SLIDER
+14
+552
+198
+585
+crit-interact-lock-default
+crit-interact-lock-default
+0
+100
+1.0
+1
 1
 NIL
 HORIZONTAL
