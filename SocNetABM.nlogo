@@ -1,6 +1,8 @@
-turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info mytheory successes subj-th-i-signal crit-interact-lock]
+turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info 
+  mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
-globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2]
+globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
+  confidence-cutoff converged-ticks]
 
 __includes ["protocol.nls"]
 
@@ -277,6 +279,28 @@ to set-researcher-colors
     set color turquoise
   ]
 end
+
+
+
+
+
+; this procedure makes only sense in case scientist have converged
+to calc-confidence
+  let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [item mytheory subj-th-i-signal]
+  ; experimental results for worst signal yielding mean - 1 standard deviation
+  let experiment-floor floor (worst-signal * pulls - sqrt (pulls * worst-signal * (1 - worst-signal)))
+  if experiment-floor < 0 [set experiment-floor 0]
+  if experiment-floor > pulls [set experiment-floor pulls]
+  ask turtles [
+    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info * strategy-threshold
+    ifelse (experiment-floor / pulls < belief-to-beat) [
+      set confidence ((belief-to-beat * item mytheory b - item mytheory a) / (experiment-floor - belief-to-beat * pulls))
+    ][
+      set confidence 10 ^ 6
+    ]
+  ]
+end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
