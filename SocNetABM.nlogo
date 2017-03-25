@@ -10,6 +10,7 @@ __includes ["protocol.nls"]
 
 to setup
   clear-all
+  init-hidden-variables
   set th-i-signal list th1-signal th2-signal
   set-default-shape turtles "person"
   create-turtles scientists [
@@ -28,6 +29,15 @@ to setup
   ]
   create-network
   reset-ticks
+end
+
+
+
+
+
+; initializes the hidden variables which (= not set in the interface)
+to init-hidden-variables
+  set confidence-cutoff 100
 end
 
 

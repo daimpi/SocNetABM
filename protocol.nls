@@ -1,6 +1,41 @@
 ; the reporters for the behaviorspace run
 
 
+; reports true if scientists have converged and have become 
+; sufficiently confident in their belief
+to-report exit-condition
+  ifelse converged [
+    let min-confidence [confidence] of min-one-of turtles [confidence]
+    ifelse min-confidence > confidence-cutoff [
+      report true
+    ][
+      report false
+    ]
+  ][
+    report false
+  ]
+end
+
+
+
+
+
+; reports true if all scientists converged to one theory, and immediately calculates their confidence
+to-report converged
+  ifelse any? turtles with [mytheory = 0] and any? turtles with [mytheory = 1] [
+    set converged-ticks 0
+    report false
+  ][
+    set converged-ticks converged-ticks + 1
+    calc-confidence
+    report true
+  ]
+end
+
+
+
+
+
 ; reports 1 if scientists converged on the best theory (th1) by the end of the 
 ; run, 0 otherwise
 to-report successful-run
