@@ -1,4 +1,4 @@
-turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info 
+turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
   mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
@@ -310,7 +310,6 @@ to calc-confidence
     ]
   ]
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -542,7 +541,7 @@ crit-interact-lock-default
 crit-interact-lock-default
 0
 100
-1.0
+0.0
 1
 1
 NIL
@@ -929,20 +928,19 @@ NetLogo 6.0.1
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="base-run" repetitions="10000" runMetricsEveryStep="false">
+  <experiment name="zm-base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="3000"/>
+    <timeLimit steps="20000"/>
+    <exitCondition>exit-condition</exitCondition>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
     <metric>avg-indiff-time</metric>
     <metric>run-end-scientists "th1"</metric>
     <metric>run-end-scientists "th2"</metric>
-    <enumeratedValueSet variable="network-structure">
-      <value value="&quot;cycle&quot;"/>
-      <value value="&quot;wheel&quot;"/>
-      <value value="&quot;complete&quot;"/>
-    </enumeratedValueSet>
+    <metric>crit-interactions-th1</metric>
+    <metric>crit-interactions-th2</metric>
+    <metric>round-converged</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>
@@ -953,33 +951,46 @@ NetLogo 6.0.1
     <enumeratedValueSet variable="pulls">
       <value value="1000"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="max-prior">
-      <value value="4"/>
+    <enumeratedValueSet variable="jump-threshold">
+      <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="strategy-threshold">
       <value value="1"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="jump-threshold">
-      <value value="1"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="extreme-priors" repetitions="10000" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="10000"/>
-    <metric>successful-run</metric>
-    <metric>average-jumps</metric>
-    <metric>avg-indiff-time</metric>
-    <metric>run-end-scientists "th1"</metric>
-    <metric>run-end-scientists "th2"</metric>
     <enumeratedValueSet variable="network-structure">
       <value value="&quot;cycle&quot;"/>
       <value value="&quot;wheel&quot;"/>
       <value value="&quot;complete&quot;"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="scientists">
-      <value value="7"/>
+    <enumeratedValueSet variable="max-prior">
+      <value value="4"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="critical-interaction">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="crit-strength">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="crit-interact-lock-default">
+      <value value="0"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="crit-interact-base-run" repetitions="10000" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="20000"/>
+    <exitCondition>exit-condition</exitCondition>
+    <metric>successful-run</metric>
+    <metric>average-jumps</metric>
+    <metric>avg-indiff-time</metric>
+    <metric>run-end-scientists "th1"</metric>
+    <metric>run-end-scientists "th2"</metric>
+    <metric>crit-interactions-th1</metric>
+    <metric>crit-interactions-th2</metric>
+    <metric>round-converged</metric>
+    <metric>average-signal "th1"</metric>
+    <metric>average-signal "th2"</metric>
+    <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>
     </enumeratedValueSet>
@@ -989,14 +1000,28 @@ NetLogo 6.0.1
     <enumeratedValueSet variable="pulls">
       <value value="1000"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="max-prior">
-      <value value="10000"/>
+    <enumeratedValueSet variable="jump-threshold">
+      <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="strategy-threshold">
       <value value="1"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="jump-threshold">
-      <value value="1"/>
+    <enumeratedValueSet variable="network-structure">
+      <value value="&quot;cycle&quot;"/>
+      <value value="&quot;wheel&quot;"/>
+      <value value="&quot;complete&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-prior">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="critical-interaction">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="crit-strength">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="crit-interact-lock-default">
+      <value value="0"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
