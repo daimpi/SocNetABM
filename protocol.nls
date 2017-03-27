@@ -71,7 +71,7 @@ to-report run-end-scientists [th#]
   ]
   if th# = "th2" [
     set th# 1
-  ]  
+  ]
   report count turtles with [mytheory = th#]
 end
 
@@ -109,3 +109,26 @@ end
 to-report round-converged
   report ticks - converged-ticks + 1
 end
+
+
+
+
+
+to-report average-signal [th#]
+  if critical-interaction and th-i-signal = (list th1-signal th2-signal) [
+    set th-i-signal [0 0]
+    ask turtles [
+      set th-i-signal (map + th-i-signal subj-th-i-signal) 
+    ]
+    set th-i-signal map [ cur-th-signal -> cur-th-signal / scientists]
+      th-i-signal
+  ]
+  if th# = "th1" [
+    set th# 0
+  ]
+  if th# = "th2" [
+    set th# 1
+  ]
+  report item th# th-i-signal
+end
+
