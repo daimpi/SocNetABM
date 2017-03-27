@@ -2,7 +2,7 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
   mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks]
+  confidence-cutoff converged-ticks last-converged-th]
 
 __includes ["protocol.nls"]
 

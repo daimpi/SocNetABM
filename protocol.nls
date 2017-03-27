@@ -20,12 +20,26 @@ end
 
 
 
-; reports true if all scientists converged to one theory, and immediately calculates their confidence
+; reports true if all scientists converged to one theory, and immediately
+; calculates their confidence
 to-report converged
-  ifelse any? turtles with [mytheory = 0] and any? turtles with [mytheory = 1] [
-    set converged-ticks 0
+  let any-th1-scientists any? turtles with [mytheory = 0]
+  let any-th2-scientists any? turtles with [mytheory = 1]
+  ifelse any-th1-scientists and any-th2-scientists [
+    set converged-ticks 0    
     report false
   ][
+    ifelse any-th1-scientists [
+      if last-converged-th = 1 [
+        set converged-ticks 0
+      ]
+      set last-converged-th 0
+    ][
+      if last-converged-th = 0 [
+        set converged-ticks 0
+      ]
+      set last-converged-th 1
+    ]
     set converged-ticks converged-ticks + 1
     calc-confidence
     report true
@@ -86,3 +100,12 @@ to-report avg-indiff-time
   report (indiff-count / (scientists * (ticks + 1)))
 end
 
+
+
+
+
+; reports the last time-point scientists converged. The + 1 correction is due 
+; to the way how `converged-ticks` is set in the `converged` procedure.
+to-report round-converged
+  report ticks - converged-ticks + 1
+end
