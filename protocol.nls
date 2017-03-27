@@ -114,6 +114,8 @@ end
 
 
 
+; reports the current average signal for th# and updates the global
+; `th-i-signal` accordingly
 to-report average-signal [th#]
   if critical-interaction and th-i-signal = (list th1-signal th2-signal) [
     set th-i-signal [0 0]

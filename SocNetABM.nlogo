@@ -71,6 +71,17 @@ end
 
 
 
+; runs until the exit-condition is met
+to go-stop
+  while [not exit-condition][
+    go
+  ]
+end
+
+
+
+
+
 to-report init-ab
   ; this formulation prevents drawing values of zero. It reports
   ; a random-float from the intervall (0 , max-prior]
@@ -340,9 +351,9 @@ ticks
 
 SLIDER
 13
-120
+160
 185
-153
+193
 th1-signal
 th1-signal
 0.1
@@ -355,9 +366,9 @@ HORIZONTAL
 
 SLIDER
 14
-166
+206
 186
-199
+239
 th2-signal
 th2-signal
 0.1
@@ -370,9 +381,9 @@ HORIZONTAL
 
 SLIDER
 14
-215
+255
 186
-248
+288
 pulls
 pulls
 100
@@ -385,9 +396,9 @@ HORIZONTAL
 
 SLIDER
 13
-268
+308
 185
-301
+341
 max-prior
 max-prior
 1
@@ -400,9 +411,9 @@ HORIZONTAL
 
 SLIDER
 14
-315
+355
 186
-348
+388
 jump-threshold
 jump-threshold
 1
@@ -415,9 +426,9 @@ HORIZONTAL
 
 SLIDER
 15
-76
+116
 187
-109
+149
 scientists
 scientists
 3
@@ -430,9 +441,9 @@ HORIZONTAL
 
 SLIDER
 13
-359
+399
 185
-392
+432
 strategy-threshold
 strategy-threshold
 0
@@ -444,10 +455,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-23
-26
-86
-59
+21
+14
+84
+47
 NIL
 setup
 NIL
@@ -461,10 +472,10 @@ NIL
 1
 
 BUTTON
-103
-27
-166
-60
+101
+15
+164
+48
 NIL
 go
 T
@@ -479,9 +490,9 @@ NIL
 
 CHOOSER
 13
-404
+444
 151
-449
+489
 network-structure
 network-structure
 "cycle" "wheel" "complete"
@@ -508,9 +519,9 @@ PENS
 
 SWITCH
 13
-460
+500
 167
-493
+533
 critical-interaction
 critical-interaction
 1
@@ -519,9 +530,9 @@ critical-interaction
 
 SLIDER
 13
-508
+548
 185
-541
+581
 crit-strength
 crit-strength
 1 / 10000
@@ -534,9 +545,9 @@ HORIZONTAL
 
 SLIDER
 14
-552
+592
 198
-585
+625
 crit-interact-lock-default
 crit-interact-lock-default
 0
@@ -546,6 +557,23 @@ crit-interact-lock-default
 1
 NIL
 HORIZONTAL
+
+BUTTON
+50
+64
+124
+97
+NIL
+go-stop
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
