@@ -97,7 +97,14 @@ end
 ; theories equally good. The +1 accounts for the extra calculation already 
 ; taking place during the setup
 to-report avg-indiff-time
-  report (indiff-count / (scientists * (ticks + 1)))
+  let avg-indiff-time-cache 0
+  ifelse converged-ticks = 0 [
+    set avg-indiff-time-cache (indiff-count / (scientists * (ticks + 1)))
+  ][
+    set avg-indiff-time-cache 
+      (indiff-count / (scientists * (round-converged + 1)))
+  ]
+  report avg-indiff-time-cache
 end
 
 
