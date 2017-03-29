@@ -23,13 +23,12 @@ end
 ; reports true if all scientists converged to one theory, and immediately
 ; calculates their confidence
 to-report converged
-  let any-th1-scientists any? turtles with [mytheory = 0]
-  let any-th2-scientists any? turtles with [mytheory = 1]
-  ifelse any-th1-scientists and any-th2-scientists [
-    set converged-ticks 0    
-    report false
-  ][
-    ifelse any-th1-scientists [
+  let count-th1-scientists count turtles with [
+    mytheory = 0 and member? 0 cur-best-th]
+  let count-th2-scientists count turtles with [
+    mytheory = 1 and member? 1 cur-best-th]
+  ifelse count-th1-scientists = scientists or count-th2-scientists = scientists [
+    ifelse count-th1-scientists > 0 [
       if last-converged-th = 1 [
         set converged-ticks 0
       ]
@@ -43,6 +42,9 @@ to-report converged
     set converged-ticks converged-ticks + 1
     calc-confidence
     report true
+  ][
+    set converged-ticks 0    
+    report false
   ]
 end
 
