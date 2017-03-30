@@ -5,6 +5,8 @@
 ; sufficiently confident in their belief
 to-report exit-condition
   ifelse converged [
+    set converged-ticks converged-ticks + 1
+    calc-confidence
     let min-confidence [confidence] of min-one-of turtles [confidence]
     ifelse min-confidence > confidence-cutoff [
       report true
@@ -12,6 +14,7 @@ to-report exit-condition
       report false
     ]
   ][
+    set converged-ticks 0
     report false
   ]
 end
@@ -20,8 +23,8 @@ end
 
 
 
-; reports true if all scientists converged to one theory, and immediately
-; calculates their confidence
+; reports true if all scientists converged to one theory and consider this theory
+; to be among their best theories
 to-report converged
   let count-th1-scientists count turtles with [
     mytheory = 0 and member? 0 cur-best-th]
@@ -39,11 +42,8 @@ to-report converged
       ]
       set last-converged-th 1
     ]
-    set converged-ticks converged-ticks + 1
-    calc-confidence
     report true
   ][
-    set converged-ticks 0    
     report false
   ]
 end
