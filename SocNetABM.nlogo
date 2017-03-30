@@ -2,7 +2,7 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
   mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks last-converged-th]
+  confidence-cutoff converged-ticks last-converged-th max-confidence]
 
 __includes ["protocol.nls"]
 
@@ -38,6 +38,7 @@ end
 ; initializes the hidden variables which (= not set in the interface)
 to init-hidden-variables
   set confidence-cutoff 100
+  set max-confidence 10 ^ 6
 end
 
 
@@ -307,20 +308,43 @@ end
 
 ; this procedure makes only sense in case scientist have converged
 to calc-confidence
-  let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [item mytheory subj-th-i-signal]
+  let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [
+    item mytheory subj-th-i-signal]
   ; experimental results for worst signal yielding mean - 1 standard deviation
-  let experiment-floor floor (worst-signal * pulls - sqrt (pulls * worst-signal * (1 - worst-signal)))
+  let experiment-floor floor (worst-signal * pulls - sqrt (pulls * worst-signal 
+    * (1 - worst-signal)))
   if experiment-floor < 0 [set experiment-floor 0]
   if experiment-floor > pulls [set experiment-floor pulls]
   ask turtles [
-    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info * strategy-threshold
+    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info 
+      * strategy-threshold
+    ; if the scientist would be given sufficient time for her belief to 
+    ; converge to the average signal of her and her link-neighbors, would 
+    ; this be enough for her to abandon her current theory? If so, she's not 
+    ; confident enough.
+    if worst-signal < belief-to-beat [
+      let avg-neighbor-signal subj-th-i-signal
+      ask link-neighbors [
+        set avg-neighbor-signal (map + avg-neighbor-signal subj-th-i-signal)
+      ]
+      let my-cluster-size (count link-neighbors + 1)
+      set avg-neighbor-signal map [avg-neigh-signal-th-i ->
+        avg-neigh-signal-th-i / my-cluster-size] avg-neighbor-signal
+      if item mytheory avg-neighbor-signal < belief-to-beat [
+        set confidence 0
+        stop
+      ]
+    ]
     ifelse (experiment-floor / pulls < belief-to-beat) [
-      set confidence ((belief-to-beat * item mytheory b - item mytheory a) / (experiment-floor - belief-to-beat * pulls))
+      set confidence ((belief-to-beat * item mytheory b - item mytheory a) 
+        / (experiment-floor - belief-to-beat * pulls))
     ][
-      set confidence 10 ^ 6
+      set confidence max-confidence
     ]
   ]
 end
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
