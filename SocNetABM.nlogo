@@ -229,7 +229,7 @@ to evaluate-critically
     if item 0 diff-theory-info < 0 or item 1 diff-theory-info > 0 [
       set crit-interactions-th1 crit-interactions-th1 + 1
       if crit-interact-lock = 0 [
-        set crit-interact-lock crit-interact-lock-default
+        set crit-interact-lock crit-jump-threshold
       ]
       let old-th-1-signal item 0 subj-th-i-signal
       set subj-th-i-signal replace-item 0 subj-th-i-signal (old-th-1-signal
@@ -238,7 +238,7 @@ to evaluate-critically
   ][
     if item 0 diff-theory-info > 0 or item 1 diff-theory-info < 0 [
       if crit-interact-lock = 0 [
-        set crit-interact-lock crit-interact-lock-default
+        set crit-interact-lock crit-jump-threshold
       ]
       set crit-interactions-th2 crit-interactions-th2 + 1
       let old-th-2-signal item 1 subj-th-i-signal
@@ -311,16 +311,16 @@ to calc-confidence
   let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [
     item mytheory subj-th-i-signal]
   ; experimental results for worst signal yielding mean - 1 standard deviation
-  let experiment-floor floor (worst-signal * pulls - sqrt (pulls * worst-signal 
+  let experiment-floor floor (worst-signal * pulls - sqrt (pulls * worst-signal
     * (1 - worst-signal)))
   if experiment-floor < 0 [set experiment-floor 0]
   if experiment-floor > pulls [set experiment-floor pulls]
   ask turtles [
-    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info 
+    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
       * strategy-threshold
-    ; if the scientist would be given sufficient time for her belief to 
-    ; converge to the average signal of her and her link-neighbors, would 
-    ; this be enough for her to abandon her current theory? If so, she's not 
+    ; if the scientist would be given sufficient time for her belief to
+    ; converge to the average signal of her and her link-neighbors, would
+    ; this be enough for her to abandon her current theory? If so, she's not
     ; confident enough.
     if worst-signal < belief-to-beat [
       let avg-neighbor-signal subj-th-i-signal
@@ -336,14 +336,13 @@ to calc-confidence
       ]
     ]
     ifelse (experiment-floor / pulls < belief-to-beat) [
-      set confidence ((belief-to-beat * item mytheory b - item mytheory a) 
+      set confidence ((belief-to-beat * item mytheory b - item mytheory a)
         / (experiment-floor - belief-to-beat * pulls))
     ][
       set confidence max-confidence
     ]
   ]
 end
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -572,11 +571,11 @@ SLIDER
 592
 198
 625
-crit-interact-lock-default
-crit-interact-lock-default
-0
-100
-0.0
+crit-jump-threshold
+crit-jump-threshold
+1
+1000
+1.0
 1
 1
 NIL
