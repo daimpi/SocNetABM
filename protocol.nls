@@ -76,14 +76,21 @@ end
 
 
 
+to-report translate-from-string [string]
+  let value-to-report 0
+  if string = "th2" [
+    set value-to-report 1
+  ]
+  report value-to-report
+end
+
+
+
+
+
 ; reports the number of researchers on th# at the end of the run
 to-report run-end-scientists [th#]
-  if th# = "th1" [
-    set th# 0
-  ]
-  if th# = "th2" [
-    set th# 1
-  ]
+  set th# translate-from-string th#
   report count turtles with [mytheory = th#]
 end
 
@@ -144,12 +151,7 @@ to-report average-signal [th#]
     set th-i-signal map [ cur-th-signal -> cur-th-signal / scientists]
       th-i-signal
   ]
-  if th# = "th1" [
-    set th# 0
-  ]
-  if th# = "th2" [
-    set th# 1
-  ]
+  set th# translate-from-string th#
   report item th# th-i-signal
 end
 
