@@ -2,7 +2,7 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
   mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks last-converged-th max-confidence min-ticks]
+  confidence-cutoff converged-ticks last-converged-th max-confidence min-ticks max-ticks]
 
 __includes ["protocol.nls"]
 
@@ -40,6 +40,7 @@ to init-hidden-variables
   set confidence-cutoff 100
   set max-confidence 10 ^ 6
   set min-ticks 10
+  set max-ticks 10000
 end
 
 
@@ -983,7 +984,7 @@ NetLogo 6.0.1
   <experiment name="zm-base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="20000"/>
+    <timeLimit steps="0"/>
     <exitCondition>exit-condition</exitCondition>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
@@ -1030,7 +1031,7 @@ NetLogo 6.0.1
   <experiment name="crit-interact-base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="20000"/>
+    <timeLimit steps="0"/>
     <exitCondition>exit-condition</exitCondition>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
