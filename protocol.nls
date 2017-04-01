@@ -6,6 +6,9 @@
 ; beliefs
 to-report exit-condition
   ifelse converged [
+    if converged-ticks = 0 [
+      set-converge-reporters-values
+    ]
     set converged-ticks converged-ticks + 1
     if ticks < min-ticks [
       report false
@@ -23,6 +26,7 @@ to-report exit-condition
   ][
     set converged-ticks 0
     if ticks >= max-ticks [
+      set-converge-reporters-values
       report true
     ]
     report false
@@ -37,10 +41,9 @@ end
 ; to be among their best theories
 to-report converged
   let count-th1-scientists count turtles with [
-    mytheory = 0 and member? 0 cur-best-th]
-  let count-th2-scientists count turtles with [
-    mytheory = 1 and member? 1 cur-best-th]
-  ifelse count-th1-scientists = scientists or count-th2-scientists = scientists [
+    mytheory = 0 and member? 0 cur-best-th]  
+  ifelse count-th1-scientists = scientists or
+    count turtles with [mytheory = 1 and member? 1 cur-best-th] = scientists [
     ifelse count-th1-scientists > 0 [
       if last-converged-th = 1 [
         set converged-ticks 0
@@ -153,5 +156,82 @@ to-report average-signal [th#]
   ]
   set th# translate-from-string th#
   report item th# th-i-signal
+end
+
+
+
+
+
+to set-converge-reporters-values
+  set converge-reporters-values map [curreporter -> runresult curreporter] 
+    converge-reporters
+end
+
+
+
+
+
+; arguments: th# = theory, type: string; rec = recording?, type: boolean
+to-report average-belief [th# rec?]
+  let identifier "avgbelief"
+  ifelse rec? [
+    let avg-belief [0 0]
+    ask turtles [
+      set avg-belief (map + avg-belief current-theory-info)
+    ]
+    set avg-belief map [cur-avg-belief -> cur-avg-belief / scientists] 
+      avg-belief
+    report fput identifier avg-belief
+  ][
+    set th# translate-from-string th#
+    let avg-belief but-first first filter [curitem -> 
+      first curitem = identifier] converge-reporters-values
+    report item th# avg-belief
+  ]
+end
+
+
+
+
+
+; reports the average cumulative successes (= turtle-owned variable `a`) for th#
+to-report average-cum-successes [th# rec?]
+  let identifier "avgsuc"
+  ifelse rec? [
+    let avg-suc [0 0]
+    ask turtles [
+      set avg-suc (map + avg-suc a)
+    ]
+    set avg-suc map [cur-avg-suc -> cur-avg-suc / scientists] 
+      avg-suc
+    report fput identifier avg-suc
+  ][
+    set th# translate-from-string th#
+    let avg-suc but-first first filter [curitem -> 
+      first curitem = identifier] converge-reporters-values
+    report item th# avg-suc
+  ]
+end
+
+
+
+
+
+; reports the average confidence of scientists; if scientists haven't 
+; converged reports 0
+to-report average-confidence [rec?]
+  let identifier "avgconfidence"
+  ifelse rec? [
+    if not converged [
+      report (list identifier 0)
+    ]
+    let avg-confidence reduce + [confidence] of turtles
+    set avg-confidence (avg-confidence / scientists)
+    report (list identifier avg-confidence)
+  ][
+    let avg-confidence item 1 first filter [curitem -> 
+      first curitem = identifier] converge-reporters-values
+    report avg-confidence
+  ]
 end
 

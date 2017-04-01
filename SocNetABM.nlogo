@@ -2,7 +2,8 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
   mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks last-converged-th max-confidence min-ticks max-ticks]
+  confidence-cutoff converged-ticks last-converged-th max-confidence min-ticks
+  max-ticks converge-reporters converge-reporters-values]
 
 __includes ["protocol.nls"]
 
@@ -11,6 +12,7 @@ __includes ["protocol.nls"]
 to setup
   clear-all
   init-hidden-variables
+  init-converge-reporters
   set th-i-signal list th1-signal th2-signal
   set-default-shape turtles "person"
   create-turtles scientists [
@@ -80,6 +82,17 @@ to init-hidden-variables
   set min-ticks 10
   set max-ticks 10000
 end
+
+
+
+
+
+to init-converge-reporters
+  set converge-reporters (list [ -> average-belief 0 true]
+  [ -> average-cum-successes 0 true] [ -> average-confidence true])
+end
+
+
 
 
 
@@ -346,7 +359,6 @@ to calc-confidence
     ]
   ]
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -985,7 +997,6 @@ NetLogo 6.0.1
   <experiment name="zm-base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="0"/>
     <exitCondition>exit-condition</exitCondition>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
@@ -995,6 +1006,11 @@ NetLogo 6.0.1
     <metric>crit-interactions-th1</metric>
     <metric>crit-interactions-th2</metric>
     <metric>round-converged</metric>
+    <metric>average-belief "th1" false</metric>
+    <metric>average-belief "th2" false</metric>
+    <metric>average-cum-successes "th1" false</metric>
+    <metric>average-cum-successes "th2" false</metric>
+    <metric>average-confidence false</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>
@@ -1026,13 +1042,12 @@ NetLogo 6.0.1
       <value value="0.001"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="crit-interact-lock-default">
-      <value value="0"/>
+      <value value="1"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="crit-interact-base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="0"/>
     <exitCondition>exit-condition</exitCondition>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
@@ -1044,6 +1059,11 @@ NetLogo 6.0.1
     <metric>round-converged</metric>
     <metric>average-signal "th1"</metric>
     <metric>average-signal "th2"</metric>
+    <metric>average-belief "th1" false</metric>
+    <metric>average-belief "th2" false</metric>
+    <metric>average-cum-successes "th1" false</metric>
+    <metric>average-cum-successes "th2" false</metric>
+    <metric>average-confidence false</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>
@@ -1075,7 +1095,7 @@ NetLogo 6.0.1
       <value value="0.001"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="crit-interact-lock-default">
-      <value value="0"/>
+      <value value="1"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
