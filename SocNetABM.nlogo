@@ -35,18 +35,6 @@ end
 
 
 
-; initializes the hidden variables which (= not set in the interface)
-to init-hidden-variables
-  set confidence-cutoff 100
-  set max-confidence 10 ^ 6
-  set min-ticks 10
-  set max-ticks 10000
-end
-
-
-
-
-
 to go
   ask turtles [
     pull
@@ -82,6 +70,16 @@ to go-stop
 end
 
 
+
+
+
+; initializes the hidden variables which (= not set in the interface)
+to init-hidden-variables
+  set confidence-cutoff 100
+  set max-confidence 10000
+  set min-ticks 10
+  set max-ticks 10000
+end
 
 
 
@@ -340,6 +338,9 @@ to calc-confidence
     ifelse (experiment-floor / pulls < belief-to-beat) [
       set confidence ((belief-to-beat * item mytheory b - item mytheory a)
         / (experiment-floor - belief-to-beat * pulls))
+      if confidence > max-confidence [
+        set confidence max-confidence
+      ]
     ][
       set confidence max-confidence
     ]
