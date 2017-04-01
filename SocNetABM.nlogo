@@ -1047,7 +1047,7 @@ NetLogo 6.0.1
     <enumeratedValueSet variable="crit-strength">
       <value value="0.001"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-interact-lock-default">
+    <enumeratedValueSet variable="crit-jump-threshold">
       <value value="1"/>
     </enumeratedValueSet>
   </experiment>
@@ -1102,7 +1102,7 @@ NetLogo 6.0.1
     <enumeratedValueSet variable="crit-strength">
       <value value="0.001"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-interact-lock-default">
+    <enumeratedValueSet variable="crit-jump-threshold">
       <value value="1"/>
     </enumeratedValueSet>
   </experiment>
