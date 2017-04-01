@@ -4,14 +4,16 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   confidence-cutoff converged-ticks last-converged-th max-confidence min-ticks
   max-ticks converge-reporters converge-reporters-values
-  run-start-scientists-save]
+  run-start-scientists-save rndseed]
 
 __includes ["protocol.nls"]
 
 
 
-to setup
+to setup [rs]
   clear-all
+  set rndseed rs
+  random-seed rs
   init-hidden-variables
   init-converge-reporters
   set th-i-signal list th1-signal th2-signal
@@ -70,8 +72,11 @@ end
 
 ; runs until the exit-condition is met
 to go-stop
-  while [not exit-condition][
+  let stop? 0
+  with-local-randomness [set stop? exit-condition]
+  while [not stop?][
     go
+    with-local-randomness [set stop? exit-condition]
   ]
 end
 
@@ -501,8 +506,8 @@ BUTTON
 14
 84
 47
-NIL
 setup
+setup new-seed
 NIL
 1
 T
@@ -999,7 +1004,7 @@ NetLogo 6.0.1
 @#$#@#$#@
 <experiments>
   <experiment name="zm-base-run" repetitions="10000" runMetricsEveryStep="false">
-    <setup>setup</setup>
+    <setup>setup new-seed</setup>
     <go>go</go>
     <exitCondition>exit-condition</exitCondition>
     <metric>successful-run</metric>
@@ -1017,6 +1022,7 @@ NetLogo 6.0.1
     <metric>average-cum-successes "th1" false</metric>
     <metric>average-cum-successes "th2" false</metric>
     <metric>average-confidence false</metric>
+    <metric>rndseed</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>
@@ -1052,7 +1058,7 @@ NetLogo 6.0.1
     </enumeratedValueSet>
   </experiment>
   <experiment name="crit-interact-base-run" repetitions="10000" runMetricsEveryStep="false">
-    <setup>setup</setup>
+    <setup>setup new-seed</setup>
     <go>go</go>
     <exitCondition>exit-condition</exitCondition>
     <metric>successful-run</metric>
@@ -1072,6 +1078,7 @@ NetLogo 6.0.1
     <metric>average-cum-successes "th1" false</metric>
     <metric>average-cum-successes "th2" false</metric>
     <metric>average-confidence false</metric>
+    <metric>rndseed</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>
