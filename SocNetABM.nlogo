@@ -3,7 +3,8 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   confidence-cutoff converged-ticks last-converged-th max-confidence min-ticks
-  max-ticks converge-reporters converge-reporters-values]
+  max-ticks converge-reporters converge-reporters-values
+  run-start-scientists-save]
 
 __includes ["protocol.nls"]
 
@@ -30,6 +31,9 @@ to setup
     set subj-th-i-signal th-i-signal
   ]
   create-network
+  let th-1-scientist count turtles with [mytheory = 0]
+  let th-2-scientist count turtles with [mytheory = 1]
+  set run-start-scientists-save (list th-1-scientist th-2-scientist)
   reset-ticks
 end
 
@@ -1001,6 +1005,8 @@ NetLogo 6.0.1
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
     <metric>avg-indiff-time</metric>
+    <metric>run-start-scientists "th1"</metric>
+    <metric>run-start-scientists "th2"</metric>
     <metric>run-end-scientists "th1"</metric>
     <metric>run-end-scientists "th2"</metric>
     <metric>crit-interactions-th1</metric>
@@ -1052,6 +1058,8 @@ NetLogo 6.0.1
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
     <metric>avg-indiff-time</metric>
+    <metric>run-start-scientists "th1"</metric>
+    <metric>run-start-scientists "th2"</metric>
     <metric>run-end-scientists "th1"</metric>
     <metric>run-end-scientists "th2"</metric>
     <metric>crit-interactions-th1</metric>

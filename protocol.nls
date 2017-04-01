@@ -235,3 +235,13 @@ to-report average-confidence [rec?]
   ]
 end
 
+
+
+
+
+; reports how many scientists were on each theory at the start of the run
+to-report run-start-scientists [th#]
+  set th# translate-from-string th#
+  report item th# run-start-scientists-save
+end
+
