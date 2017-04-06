@@ -225,8 +225,7 @@ to-report average-confidence [rec?]
     if not converged [
       report (list identifier 0)
     ]
-    let avg-confidence reduce + [confidence] of turtles
-    set avg-confidence (avg-confidence / scientists)
+    let avg-confidence mean [confidence] of turtles
     report (list identifier avg-confidence)
   ][
     let avg-confidence item 1 first filter [curitem -> 
