@@ -368,6 +368,15 @@ to calc-confidence
     ]
   ]
 end
+
+
+
+
+
+; reports a numerical approximation for the error-function function on its negative domain, therefore the argument (x) must be smaller than 0. For sources see infotab.
+to-report erf [x]
+  report exp ( 0 - x ^ 2 - 1.26551223 + 1.00002368 / (1 - .5 * x) + .37409196 / (1 - .5 * x) ^ 2 + 0.09678418 / (1 - .5 * x) ^ 3 - .18628806 / (1 - .5 * x) ^ 4 + .27886807 / (1 - .5 * x) ^ 5 - 1.13520398 / ( 1 - .5 * x) ^ 6 + 1.48851587 / (1 - .5 * x) ^ 7 - .82215223 / (1 - .5 * x) ^ 8 + .17087277 / (1 - .5 * x) ^ 9) / (1 - .5 * x) - 1
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -689,9 +698,12 @@ Default-values have been set to mirror zollmans (2010) model. The ranges for the
 
 ## CREDITS AND REFERENCES
 
-Fully connected Network Example
+Models Library -> Fully connected Network Example
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+The numerical approximation for the error function is taken from: 
+Numerical Recipes in Fortran 77: The Art of Scientific Computing (ISBN 0-521-43064-X), 1992, page 214, Cambridge University Press. 
+via WIKIPEDIA. (2017) URL: https://en.wikipedia.org/wiki/Error_function#Numerical_approximations. Accessed: 2017-04-06. 
+
 @#$#@#$#@
 default
 true
