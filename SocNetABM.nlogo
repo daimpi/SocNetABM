@@ -223,6 +223,7 @@ to share
   ask link-neighbors [
     set successvec successes
     ifelse mytheory = 0 [
+      set neighbor-theory 0
       set pullcounter pulls-th1
     ][
       set neighbor-theory 1
