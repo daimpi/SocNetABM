@@ -6,14 +6,11 @@
 ; beliefs
 to-report exit-condition
   ifelse converged [
+    calc-confidence
     if converged-ticks = 0 [
       set-converge-reporters-values
     ]
     set converged-ticks converged-ticks + 1
-    if ticks < min-ticks [
-      report false
-    ]
-    calc-confidence
     let min-confidence [confidence] of min-one-of turtles [confidence]
     ifelse min-confidence > confidence-cutoff [
       report true

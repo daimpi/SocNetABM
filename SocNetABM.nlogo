@@ -2,7 +2,7 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
   mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks last-converged-th max-confidence min-ticks
+  confidence-cutoff converged-ticks last-converged-th max-confidence 
   max-ticks converge-reporters converge-reporters-values
   run-start-scientists-save rndseed]
 
@@ -86,9 +86,8 @@ end
 
 ; initializes the hidden variables which (= not set in the interface)
 to init-hidden-variables
-  set confidence-cutoff 100
-  set max-confidence 10000
-  set min-ticks 10
+  set confidence-cutoff 10 ^ 4
+  set max-confidence 10 ^ 5
   set max-ticks 10000
 end
 
@@ -224,6 +223,7 @@ to share
   ask link-neighbors [
     set successvec successes
     ifelse mytheory = 0 [
+      set neighbor-theory 0
       set pullcounter pulls-th1
     ][
       set neighbor-theory 1
@@ -332,41 +332,58 @@ end
 to calc-confidence
   let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [
     item mytheory subj-th-i-signal]
-  ; experimental results for worst signal yielding mean - 1 standard deviation
-  let experiment-floor floor (worst-signal * pulls - sqrt (pulls * worst-signal
-    * (1 - worst-signal)))
-  if experiment-floor < 0 [set experiment-floor 0]
-  if experiment-floor > pulls [set experiment-floor pulls]
   ask turtles [
     let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
       * strategy-threshold
+    let cur-theory mytheory
+    let avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
+      (turtle-set link-neighbors self)
     ; if the scientist would be given sufficient time for her belief to
     ; converge to the average signal of her and her link-neighbors, would
     ; this be enough for her to abandon her current theory? If so, she's not
     ; confident enough.
-    if worst-signal < belief-to-beat [
-      let avg-neighbor-signal subj-th-i-signal
-      ask link-neighbors [
-        set avg-neighbor-signal (map + avg-neighbor-signal subj-th-i-signal)
-      ]
-      let my-cluster-size (count link-neighbors + 1)
-      set avg-neighbor-signal map [avg-neigh-signal-th-i ->
-        avg-neigh-signal-th-i / my-cluster-size] avg-neighbor-signal
-      if item mytheory avg-neighbor-signal < belief-to-beat [
-        set confidence 0
-        stop
-      ]
+    if avg-neighbor-signal <= belief-to-beat [
+      set confidence 0
+      stop
     ]
-    ifelse (experiment-floor / pulls < belief-to-beat) [
-      set confidence ((belief-to-beat * item mytheory b - item mytheory a)
-        / (experiment-floor - belief-to-beat * pulls))
+    let alpha item mytheory a
+    let varepsilon avg-neighbor-signal - belief-to-beat
+    let delta item mytheory current-theory-info - belief-to-beat
+    if (2 * alpha - 1) * delta <= belief-to-beat [
+      set confidence 0
+      stop
+    ]
+    let exit-probability 0.5 + 0.5 * erf (
+      ((0 - 2 * alpha + 1) * delta + belief-to-beat) 
+      / (sqrt((0 - 2 * alpha * delta + delta + belief-to-beat) 
+      * (belief-to-beat + varepsilon) * (0 - 1 + belief-to-beat + varepsilon) 
+      / (varepsilon * (belief-to-beat + delta))) 
+      * (belief-to-beat + delta)))
+    ifelse exit-probability > 0 [
+      set confidence 1 / exit-probability
       if confidence > max-confidence [
         set confidence max-confidence
       ]
     ][
-      set confidence max-confidence
+     set confidence max-confidence
     ]
   ]
+end
+
+
+
+
+
+; reports a numerical approximation for the error-function function on its 
+; negative domain, therefore the argument (x) must be smaller than 0. For 
+; sources see infotab.
+to-report erf [x]
+  report exp ( 0 - x ^ 2 - 1.26551223 + 1.00002368 / (1 - .5 * x) 
+  + .37409196 / (1 - .5 * x) ^ 2 + 0.09678418 / (1 - .5 * x) ^ 3 
+  - .18628806 / (1 - .5 * x) ^ 4 + .27886807 / (1 - .5 * x) ^ 5 
+  - 1.13520398 / ( 1 - .5 * x) ^ 6 + 1.48851587 / (1 - .5 * x) ^ 7 
+  - .82215223 / (1 - .5 * x) ^ 8 + .17087277 / (1 - .5 * x) ^ 9) 
+  / (1 - .5 * x) - 1
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -689,9 +706,12 @@ Default-values have been set to mirror zollmans (2010) model. The ranges for the
 
 ## CREDITS AND REFERENCES
 
-Fully connected Network Example
+Models Library -> Fully connected Network Example
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+The numerical approximation for the error function is taken from: 
+Numerical Recipes in Fortran 77: The Art of Scientific Computing (ISBN 0-521-43064-X), 1992, page 214, Cambridge University Press. 
+via WIKIPEDIA. (2017) URL: https://en.wikipedia.org/wiki/Error_function#Numerical_approximations. Accessed: 2017-04-06. 
+
 @#$#@#$#@
 default
 true
