@@ -2,7 +2,7 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
   mytheory successes subj-th-i-signal crit-interact-lock confidence]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks last-converged-th max-confidence min-ticks
+  confidence-cutoff converged-ticks last-converged-th max-confidence 
   max-ticks converge-reporters converge-reporters-values
   run-start-scientists-save rndseed]
 
@@ -88,7 +88,6 @@ end
 to init-hidden-variables
   set confidence-cutoff 10 ^ 4
   set max-confidence 10 ^ 5
-  set min-ticks 10
   set max-ticks 10000
 end
 
