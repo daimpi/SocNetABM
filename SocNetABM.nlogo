@@ -347,7 +347,7 @@ to calc-confidence
     ]
     let alpha item mytheory a
     let varepsilon avg-neighbor-signal - belief-to-beat
-    let delta item mytheory subj-th-i-signal - belief-to-beat
+    let delta item mytheory current-theory-info - belief-to-beat
     if (2 * alpha - 1) * delta <= belief-to-beat [
       set confidence 0
       stop
