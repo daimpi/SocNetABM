@@ -10,6 +10,7 @@ __includes ["protocol.nls"]
 
 
 
+; initializes the world
 to setup [rs]
   clear-all
   set rndseed rs
@@ -19,13 +20,20 @@ to setup [rs]
   set th-i-signal list th1-signal th2-signal
   set-default-shape turtles "person"
   create-turtles scientists [
+    ; a1(2) is the prior alpha for theory 1(2) for a given scientist. The same
+    ; applies to b1(2) which stands for prior beta of theory 1(2).
     let a1 init-ab
     let b1 init-ab
     let a2 init-ab
     let b2 init-ab
     set a list a1 a2
+    ; b contains the denominator of the mean of the beta distribution (i.e. 
+    ; alpha + beta): the first (second) entry is the denominator for 
+    ; theory 1 (2).
     set b (list (a1 + b1) (a2 + b2))
     set current-theory-info [0 0]
+    ; calculate the prior (i.e. mean of the beta distribution) from the random 
+    ; alphas / betas.
     calc-posterior
     compute-strategies
     set mytheory one-of cur-best-th
@@ -43,6 +51,7 @@ end
 
 
 
+; one go = one round
 to go
   ask turtles [
     pull
@@ -84,7 +93,7 @@ end
 
 
 
-; initializes the hidden variables which (= not set in the interface)
+; initializes the hidden variables (= not set in the interface)
 to init-hidden-variables
   set confidence-cutoff 10 ^ 4
   set max-confidence 10 ^ 5
@@ -95,6 +104,7 @@ end
 
 
 
+; the reporters which have to be collected when researchers converge.
 to init-converge-reporters
   set converge-reporters (list [ -> average-belief 0 true]
   [ -> average-cum-successes 0 true] [ -> average-confidence true])
@@ -104,9 +114,10 @@ end
 
 
 
+; generates the alphas & betas for the researchers priors
 to-report init-ab
   ; this formulation prevents drawing values of zero. It reports
-  ; a random-float from the intervall (0 , max-prior]
+  ; a random-float from the interval (0 , max-prior]
   report (max-prior - random-float max-prior)
 end
 
@@ -114,6 +125,7 @@ end
 
 
 
+; arranging the researchers in the respective social-networks
 to create-network
   if network-structure = "cycle" [
     let turtle-list sort turtles
@@ -131,7 +143,7 @@ end
 
 
 
-; not performance optimized
+; arranging the researchers in a complete-graph
 to create-network-complete
   ask turtles [ create-links-with other turtles ]
   layout-circle turtles (world-width / 2 - 1)
@@ -141,6 +153,7 @@ end
 
 
 
+; arranging the researchers in a cycle
 to create-network-cycle [turtle-list]
   let previous-turtle 0
     foreach turtle-list [ [cur-turtle] ->
@@ -160,7 +173,7 @@ end
 
 
 
-
+; arranging the researchers in a wheel
 to create-network-wheel
   ; first the cycle is created...
   let turtle-list sort turtles
@@ -176,12 +189,13 @@ end
 
 
 
-; The binominal distribution is approximated by the normal distribution with
+; Researchers pull from their respective slot machine:
+; the binomial distribution is approximated by the normal distribution with
 ; the same mean and variance. This approximation is highly accurate for all
 ; parameter values from the interface.
 ; B/c the normal distribution is a continuous distribution the outcome is
-; rounded and there is a safety check which costrains the distribution to the
-; intervall [0, pulls] to prevent negative- or higher than pulls numbers of
+; rounded and there is a safety check which constrains the distribution to the
+; interval [0, pulls] to prevent negative- or higher than pulls numbers of
 ; successes
 to pull
   let mysignal item mytheory subj-th-i-signal
@@ -201,7 +215,8 @@ end
 
 
 
-; The information the scientist has obtained via her own pulls is integrated into her memory
+; The information the scientist has obtained via her own pulls is integrated
+; into her memory
 to integrate-own-pull-info
   set a (map + a successes)
   set b replace-item mytheory b (item mytheory b + pulls)
@@ -211,12 +226,13 @@ end
 
 
 
-; for high number of scientists in complete networks this should be optimized, but first integrate the critical interaction
+; the sharing of information between researchers optionally including 
+; critical-interaction
 to share
-  let cur-turtle self
-  ; first entry is th1 2nd is th2
+  let cur-turtle self  
   let successvec 0
   let pullcounter 0
+  ; first list entry is th1 2nd is th2
   let pulls-th1 list pulls 0
   let pulls-th2 list 0 pulls
   let neighbor-theory 0
@@ -243,6 +259,8 @@ end
 
 
 
+; If researchers communicate with researchers from another theory they might
+; interact critically 
 to evaluate-critically
   let old-theory-info current-theory-info
   calc-posterior
@@ -274,6 +292,8 @@ end
 
 
 
+; calculates from a given a (= alpha) and b (= alpha + beta) the belief of a 
+; researcher i.e. the mean of the beta distribution
 to calc-posterior
   set current-theory-info (map / a b)
 end
@@ -282,12 +302,11 @@ end
 
 
 
+; Researchers determine which theories they currently consider best theories
 to compute-strategies
-  ; format: list example: [0]
   let max-score max current-theory-info
   let best-th-position position max-score current-theory-info
-  ; set cur-best-th (list best-th-position)
-  ; if the other entry is in the intervall for best theories it is also added
+  ; if the other entry is in the interval for best theories it is also added
   let other-score item ((best-th-position + 1) mod 2) current-theory-info
   ifelse other-score >= max-score * strategy-threshold [
     set cur-best-th [0 1]
@@ -301,6 +320,7 @@ end
 
 
 
+; Researchers potentially switch to the other theory
 to act-on-strategies
   set theory-jump theory-jump + 1
   if theory-jump = jump-threshold [
@@ -316,6 +336,7 @@ end
 
 
 
+; The researchers' color depends on the theory she's working on
 to set-researcher-colors
   ifelse mytheory = 0 [
     set color red
@@ -328,7 +349,10 @@ end
 
 
 
-; this procedure makes only sense in case scientist have converged
+; Calculates how confident the researcher is in the fact that her current best 
+; theory is actually the best theory (i.e. how unlikely it is that she will 
+; change her mind). This calculation only makes sense in case researchers have
+; converged.
 to calc-confidence
   let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [
     item mytheory subj-th-i-signal]
@@ -346,6 +370,8 @@ to calc-confidence
       set confidence 0
       stop
     ]
+    ; the following calculations are based on probability maximization of the 
+    ; normal-distribution. This is separately documented at [placeholder].
     let alpha item mytheory a
     let varepsilon avg-neighbor-signal - belief-to-beat
     let delta item mytheory current-theory-info - belief-to-beat
@@ -640,77 +666,160 @@ NIL
 0
 
 @#$#@#$#@
-## WHAT IS IT?
+# UNDER CONSTRUCTION
 
-(a general understanding of what the model is trying to show or explain)
+# SocNetABM
+NetLogo iteration of Zollman's (2010) ABM with critical interaction.
+
+
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
-### Variables
+Beliefs of the researchers are modeled via a beta distribution: The mean of the beta distribution is their current belief.
 
-Turtles-own
 
-  * current-theory-info
-    * type: list
-    * example: [0.44945 0.594994]
-Contains the researchers current evaluation of the two theories. Entry 1 is the evaluation for the first theory and entry 2 for second.
-
-  * mytheory
-    * type: integer
-    The theory the researcher is currently working on i.e. the theory she pulled this round from: 0 = theory1, 1 = theory 2
-    
-  * successes
-    * type: float
-    * The number of successes from her pulls this round
-    
-  * a
-    * type: list
-    * example [4501.309490 208.489044]
-    The alpha of the researchers memory in the beta distribution, i.e. the accumulated number of successes. The first entry is the alpha for theory 1 the 2nd for theory 2.
-    
-  * b 
-    * type: list
-    * example [9788.309490 500.489044]
-    The alpha + beta of the researchers memory in the beta distribution, i.e. the accumulated number of pulls/tries. The first entry is the pulls for theory 1 the 2nd for theory 2.
-    
-
-## HOW TO USE IT
-
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
-
-Default-values have been set to mirror zollmans (2010) model. The ranges for the values are mostly set to mirror the ranges by x (2015). The exceptions are:
-
-  * The signal ranges which have a larger intervall
-  * The pulls range which doesn't start at 1 but at 100 because of the normal distribution potentially not being that good for low pulls. ( pulls = n in (x 2015))
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
 
 ## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+The binomial distribution is approximated by the normal distribution with the same mean and variance. This approximation is highly accurate for all parameter values from the interface.
+B/c the normal distribution is a continuous distribution the outcome is rounded and there is a safety check which constrains the distribution to the interval [0, pulls] to prevent negative- or higher than pulls numbers of successes
 
-## RELATED MODELS
+## Variables
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+Default-values have been set to mirror Zollman's (2010) model. The slider ranges are mostly set to mirror the ranges considered by Rosenstock et al. (2016). The exceptions are:
+
+  * The signal ranges have a larger interval
+  * The pulls range doesn't start at 1 but at 100 because of the normal approximation potentially not being accurate enough for low numbers of pulls. ( pulls correspond to `n` in Rosenstock et al.(2016))
+
+### Globals
+
+  * th-i-signal
+    * type: float-list
+    * example: [0.5 0.499]
+    The average objective probability of success (ops)for [theory-1 theory-2].
+    
+  * indiff-count
+    * type: integer
+    * example: 1003
+    The sum of number of rounds each scientist was indifferent between the two theories.
+    
+  * crit-interactions-th1(2)
+    * type: integer
+    * example: 12
+  The sum of critical interactions scientists on theory 1(2) encountered.
+  
+  * confidence-cutoff
+    * type: integer
+    * example: 10000
+    A hidden variable: the confidence that the least confident scientist has to reach before the run is terminated.
+    
+  * converged-ticks
+    * type: integer
+    * example: 114
+    The number of ticks which have passed since the researchers converged for the last time.
+    
+  * last-converged-th
+    * type: integer
+    * example: 0
+  The theory the researchers converged on the last time they converged: 0 = th1, 1 = th2
+  
+  * max-confidence
+    * type: integer
+    * example: 100000
+    A hidden variable: the maximal confidence a researcher can reach.
+    
+  * max-ticks
+    * type: integer
+    * example: 10000
+    The maximal number of rounds before a run is terminated by the exit condition.
+    
+  * converge-reporters
+    * type: anonymous reporters list
+    * example: [(anonymous reporter: [ average-belief 0 true ]) (anonymous reporter: [ average-cum-successes 0 true ]) (anonymous reporter: [ average-confidence true ])]
+    Reporters which have to be collected in the round when researchers converge. The values for those reporters is then stored in the global `converge-reporters-values` and retrieved by BehaviourSpace at the end of the run.
+    
+  * converge-reporters-values
+    * type: list
+    * example: [["avgbelief" 0.4998 0.4980] ["avgsuc" 757100.9795 383442.9715] ["avgconfidence" 60234.0298]]
+    The values from the anonymous reporters in `converge-reporters`, recorded at the last time researchers converged.
+    
+  * run-start-scientists-save
+    * type: integer-list
+    * example: [5 5]
+    The number of scientists on [th1 th2] at the beginning of the run.
+    
+  * rndseed
+    * format: integer
+    * example: -2147452934
+    Stores the random-seed of the current run.
+    
+
+### Turtles-own
+
+  * cur-best-th
+    * type: integer-list
+    * example: [0 1] or [0]
+    The theories the researcher currently considers best: 0 = theory 1, 1 = theory 2. Can be a singleton.  
+  
+  * current-theory-info
+    * type: float-list
+    * example: [0.44945 0.594994]
+    Contains the researchers current evaluation of the two theories. Entry 1 is the evaluation for the first theory and entry 2 for second.
+
+  * mytheory
+    * type: integer
+    * example: 0
+    The theory the researcher is currently working on i.e. the theory she pulls from: 0 = theory 1, 1 = theory 2
+    
+  * successes
+    * type: integer-list
+    * example: [512 0] or [0 483]
+    The number of successes from her pulls this round: first entry successes for th1, 2nd: th2. One entry is always 0 b/c the researcher is pulling only from one theory at a time.
+    
+  * a
+    * type: float-list
+    * example [4501.309490 208.489044]
+    The alpha of the researchers memory in the beta distribution, i.e. the accumulated number of successes (including the prior). The first entry is the alpha for theory 1 the 2nd for theory 2.
+    
+  * b 
+    * type: float-list
+    * example [9788.309490 500.489044]
+    Each entry: the alpha + beta of the researchers memory in the beta distribution, i.e. the accumulated number of pulls (including the prior). The first entry is the pulls for theory 1 the 2nd for theory 2.
+    
+  * theory-jump
+    * type: integer
+    * example: 0
+    How often the researcher considered jumping to another theory since the last jump.
+    
+  * times-jumped
+    * type: integer
+    * example: 42
+    How often the researcher switched theories.
+    
+  * subj-th-i-signal
+    * type: float-list
+    * example: [0.5 0.499]
+    The current objective probability of success (ops) the researcher has for [theory-1 theory-2].
+    
+  * crit-interact-lock
+    * type: integer
+    * example: 3
+    For how many more rounds the researcher is blocked from pursuing strategies (i.e. consider jumping / jump) b/c of critical interaction.
+    
+  * confidence
+    * type: float
+    * example 1337.94038
+    How confident the researcher is in the fact that her current best theory is actually the best theory (i.e. how unlikely it is that she will change her mind). Only calculated once all researchers have converged to one theory.
+
 
 ## CREDITS AND REFERENCES
-
-Models Library -> Fully connected Network Example
 
 The numerical approximation for the error function is taken from: 
 Numerical Recipes in Fortran 77: The Art of Scientific Computing (ISBN 0-521-43064-X), 1992, page 214, Cambridge University Press. 
 via WIKIPEDIA. (2017) URL: https://en.wikipedia.org/wiki/Error_function#Numerical_approximations. Accessed: 2017-04-06. 
+
+Rosenstock, S., Bruner, J. P., & O'Connor, C. (2016). In Epistemic Networks, Is Less Really More?.
+Zollman, K. J. (2010). The epistemic benefit of transient diversity. Erkenntnis, 72(1), 17.
 
 @#$#@#$#@
 default
