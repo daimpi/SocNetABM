@@ -56,9 +56,6 @@ to go
   ask turtles [
     pull
     integrate-own-pull-info
-    if critical-interaction [
-      calc-posterior
-    ]
   ]
   ask turtles [
     share
@@ -229,30 +226,35 @@ end
 ; the sharing of information between researchers optionally including 
 ; critical-interaction
 to share
-  let cur-turtle self  
-  let successvec 0
-  let pullcounter 0
+  let cur-turtle self
+  let cur-turtle-th mytheory
   ; first list entry is th1 2nd is th2
-  let pulls-th1 list pulls 0
-  let pulls-th2 list 0 pulls
-  let neighbor-theory 0
+  let successvec [0 0]
+  let pullcounter [0 0]
   ask link-neighbors [
-    set successvec successes
-    ifelse mytheory = 0 [
-      set neighbor-theory 0
-      set pullcounter pulls-th1
+    ifelse mytheory = cur-turtle-th or not critical-interaction [
+      set successvec (map + successvec successes)
+      set pullcounter replace-item mytheory pullcounter 
+        (item mytheory pullcounter + pulls)
     ][
-      set neighbor-theory 1
-      set pullcounter pulls-th2
-    ]
-    ask cur-turtle [
-      set a (map + a successvec)
-      set b (map + b pullcounter)
-      if critical-interaction and mytheory != neighbor-theory [
-        evaluate-critically
+      let other-successes successes
+      let other-theory mytheory
+      let other-success-ratio ((item mytheory successes) / pulls)
+      if other-success-ratio > item mytheory [current-theory-info] of
+        cur-turtle [
+        ask cur-turtle [
+          evaluate-critically         
+        ]
+      ]
+      ask cur-turtle [
+        set a (map + a other-successes)
+        set b replace-item other-theory b (item other-theory b + pulls)
+        calc-posterior
       ]
     ]
   ]
+  set a (map + a successvec)
+  set b (map + b pullcounter)
 end
 
 
@@ -262,30 +264,19 @@ end
 ; If researchers communicate with researchers from another theory they might
 ; interact critically 
 to evaluate-critically
-  let old-theory-info current-theory-info
-  calc-posterior
-  let diff-theory-info (map - current-theory-info old-theory-info)
+  let actual-prob-suc 0
   ifelse mytheory = 0 [
-    if item 0 diff-theory-info < 0 or item 1 diff-theory-info > 0 [
-      set crit-interactions-th1 crit-interactions-th1 + 1
-      if crit-interact-lock = 0 [
-        set crit-interact-lock crit-jump-threshold
-      ]
-      let old-th-1-signal item 0 subj-th-i-signal
-      set subj-th-i-signal replace-item 0 subj-th-i-signal (old-th-1-signal
-        + (1 - old-th-1-signal) * crit-strength)
-    ]
+    set crit-interactions-th1 crit-interactions-th1 + 1
+    set actual-prob-suc 1
   ][
-    if item 0 diff-theory-info > 0 or item 1 diff-theory-info < 0 [
-      if crit-interact-lock = 0 [
-        set crit-interact-lock crit-jump-threshold
-      ]
-      set crit-interactions-th2 crit-interactions-th2 + 1
-      let old-th-2-signal item 1 subj-th-i-signal
-      set subj-th-i-signal replace-item 1 subj-th-i-signal (old-th-2-signal
-        + (0 - old-th-2-signal) * crit-strength)
-    ]
+    set crit-interactions-th2 crit-interactions-th2 + 1
   ]
+  if crit-interact-lock = 0 [
+    set crit-interact-lock crit-jump-threshold
+  ]
+  let old-th-i-signal item mytheory subj-th-i-signal
+  set subj-th-i-signal replace-item mytheory subj-th-i-signal (old-th-i-signal
+    + (actual-prob-suc - old-th-i-signal) * crit-strength)
 end
 
 
