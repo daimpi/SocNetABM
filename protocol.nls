@@ -62,6 +62,85 @@ end
 
 
 
+; Calculates how confident the researcher is in the fact that her current best 
+; theory is actually the best theory (i.e. how unlikely it is that she will 
+; change her mind). This calculation only makes sense in case researchers have
+; converged.
+to calc-confidence
+  if converged-ticks = 0 [
+    set g-depressed-confidence false
+  ]
+  if g-depressed-confidence [stop]
+  let stop? false
+  ask turtles [
+    if stop? [stop]
+    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
+      * strategy-threshold
+    let cur-theory mytheory
+    if converged-ticks = 0 [
+      set avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
+        (turtle-set link-neighbors self)
+    ]
+    ; if the scientist would be given sufficient time for her belief to
+    ; converge to the average signal of her and her link-neighbors, would
+    ; this be enough for her to abandon her current theory? If so, she's not
+    ; confident enough.
+    if avg-neighbor-signal <= belief-to-beat [
+      set confidence 0
+      set stop? true
+      set g-depressed-confidence true
+      stop
+    ]
+    ; the following calculations are based on probability maximization of the 
+    ; normal-distribution. This is separately documented at [placeholder].
+    let alpha item mytheory a
+    let varepsilon avg-neighbor-signal - belief-to-beat
+    let delta item mytheory current-theory-info - belief-to-beat
+    if (2 * alpha - 1) * delta <= belief-to-beat [
+      set confidence 0
+      set stop? true
+      stop
+    ]
+    let exit-probability 0.5 + 0.5 * erf (
+      ((0 - 2 * alpha + 1) * delta + belief-to-beat) 
+      / (sqrt((0 - 2 * alpha * delta + delta + belief-to-beat) 
+      * (belief-to-beat + varepsilon) * (0 - 1 + belief-to-beat + varepsilon) 
+      / (varepsilon * (belief-to-beat + delta))) 
+      * (belief-to-beat + delta)))
+    ifelse exit-probability > 0 [
+      set confidence 1 - exit-probability
+    ][
+     set confidence 1
+    ]
+  ]
+  ifelse stop? [
+    set g-confidence 0
+  ][
+    set g-confidence reduce * [confidence] of turtles
+  ]
+end
+
+
+
+
+
+; reports a numerical approximation for the error-function function on its 
+; negative domain, therefore the argument (x) must be smaller than 0. For 
+; sources see infotab.
+to-report erf [x]
+  let t (1 - .5 * x)
+  report exp ( 0 - x ^ 2 - 1.26551223 + 1.00002368 / t 
+    + .37409196 / t ^ 2 + 0.09678418 / t ^ 3 
+    - .18628806 / t ^ 4 + .27886807 / t ^ 5 
+    - 1.13520398 / t ^ 6 + 1.48851587 / t ^ 7 
+    - .82215223 / t ^ 8 + .17087277 / t ^ 9) 
+    / t - 1
+end
+
+
+
+
+
 ; reports 1 if scientists converged on the best theory (th1) by the end of the 
 ; run, 0 otherwise
 to-report successful-run
