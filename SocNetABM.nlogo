@@ -1,10 +1,11 @@
 turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
-  mytheory successes subj-th-i-signal crit-interact-lock confidence]
+  mytheory successes subj-th-i-signal crit-interact-lock confidence 
+  avg-neighbor-signal]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks last-converged-th max-confidence 
+  confidence-cutoff converged-ticks last-converged-th 
   max-ticks converge-reporters converge-reporters-values
-  run-start-scientists-save rndseed]
+  run-start-scientists-save rndseed g-confidence g-depressed-confidence]
 
 __includes ["protocol.nls"]
 
@@ -92,8 +93,7 @@ end
 
 ; initializes the hidden variables (= not set in the interface)
 to init-hidden-variables
-  set confidence-cutoff 10 ^ 4
-  set max-confidence 10 ^ 5
+  set confidence-cutoff 1 - (1 / 10 ^ 4)
   set max-ticks 10000
 end
 
@@ -345,20 +345,28 @@ end
 ; change her mind). This calculation only makes sense in case researchers have
 ; converged.
 to calc-confidence
-  let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [
-    item mytheory subj-th-i-signal]
+  if converged-ticks = 0 [
+    set g-depressed-confidence false
+  ]
+  if g-depressed-confidence [stop]
+  let stop? false
   ask turtles [
+    if stop? [stop]
     let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
       * strategy-threshold
     let cur-theory mytheory
-    let avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
-      (turtle-set link-neighbors self)
+    if converged-ticks = 0 [
+      set avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
+        (turtle-set link-neighbors self)
+    ]
     ; if the scientist would be given sufficient time for her belief to
     ; converge to the average signal of her and her link-neighbors, would
     ; this be enough for her to abandon her current theory? If so, she's not
     ; confident enough.
     if avg-neighbor-signal <= belief-to-beat [
       set confidence 0
+      set stop? true
+      set g-depressed-confidence true
       stop
     ]
     ; the following calculations are based on probability maximization of the 
@@ -368,6 +376,7 @@ to calc-confidence
     let delta item mytheory current-theory-info - belief-to-beat
     if (2 * alpha - 1) * delta <= belief-to-beat [
       set confidence 0
+      set stop? true
       stop
     ]
     let exit-probability 0.5 + 0.5 * erf (
@@ -377,13 +386,15 @@ to calc-confidence
       / (varepsilon * (belief-to-beat + delta))) 
       * (belief-to-beat + delta)))
     ifelse exit-probability > 0 [
-      set confidence 1 / exit-probability
-      if confidence > max-confidence [
-        set confidence max-confidence
-      ]
+      set confidence 1 - exit-probability
     ][
-     set confidence max-confidence
+     set confidence 1
     ]
+  ]
+  ifelse stop? [
+    set g-confidence 0
+  ][
+    set g-confidence reduce * [confidence] of turtles
   ]
 end
 
@@ -709,9 +720,10 @@ The sum of critical interactions scientists on theory 1(2) encountered.
 #### confidence-cutoff
 
 * type: integer
-* example: 10000  
+* example: 0.9999 
 
-A hidden variable: the confidence that the least confident scientist has to reach before the run is terminated.
+The global-confidence `g-confidence` must be higher than this value for the run to be terminated.
+
 
 #### converged-ticks
 
@@ -726,13 +738,6 @@ The number of ticks which have passed since the researchers converged for the la
 * example: 0  
 
 The theory the researchers converged on the last time they converged: 0 = th1, 1 = th2
-
-#### max-confidence
-
-* type: integer
-* example: 100000  
-
-A hidden variable: the maximal confidence a researcher can reach.
 
 #### max-ticks
 
@@ -768,6 +773,20 @@ The number of scientists on [th1 th2] at the beginning of the run.
 * example: -2147452934  
 
 Stores the random-seed of the current run.
+
+#### g-confidence
+
+* format: float
+* example: 0.9993
+
+Global-confidence: the probability that not a single researcher will switch theories i.e. the probability that this convergence is final. Range: [0,1]
+
+#### g-depressed-confidence
+
+* format: boolean
+* example: false
+
+If there is a researcher for whom, if given sufficient time for her belief to converge to the average signal of her and her link-neighbors, this would this be enough to abandon her current theory, her confidence will always be zero and therefore `g-confidence` will also be zero. In this case `g-depressed-confidence` will be set to true in order to avoid redundant confidence calculations.
 
 
 ### Turtles-own
@@ -847,6 +866,13 @@ For how many more rounds the researcher is blocked from pursuing strategies (i.e
 * example 1337.94038  
 
 How confident the researcher is in the fact that her current best theory is actually the best theory (i.e. how unlikely it is that she will change her mind). Only calculated once all researchers have converged to one theory.  
+
+#### avg-neighbor-signal
+
+* type: float
+* example: 0.499
+
+Only set once all researchers converged. This is the average signal the researcher and her link-neighbors currently observe for the theory they converged on.
 
 
 ## CREDITS AND REFERENCES

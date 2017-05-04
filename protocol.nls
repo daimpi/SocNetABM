@@ -227,10 +227,10 @@ end
 to-report average-confidence [rec?]
   let identifier "avgconfidence"
   ifelse rec? [
-    if not converged [
+    if ticks >= max-ticks and not converged [
       report (list identifier 0)
     ]
-    let avg-confidence mean [confidence] of turtles
+    let avg-confidence g-confidence
     report (list identifier avg-confidence)
   ][
     let avg-confidence item 1 first filter [curitem -> 
