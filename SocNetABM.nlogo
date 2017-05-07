@@ -1,9 +1,9 @@
 turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
-  mytheory successes subj-th-i-signal crit-interact-lock confidence 
+  mytheory successes subj-th-i-signal crit-interact-lock confidence
   avg-neighbor-signal]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks last-converged-th 
+  confidence-cutoff converged-ticks last-converged-th
   max-ticks converge-reporters converge-reporters-values
   run-start-scientists-save rndseed g-confidence g-depressed-confidence]
 
@@ -28,11 +28,11 @@ to setup [rs]
     let a2 init-ab
     let b2 init-ab
     set a list a1 a2
-    ; b contains the denominator of the mean of the beta distribution (i.e. 
-    ; alpha + beta): the first (second) entry is the denominator for 
+    ; b contains the denominator of the mean of the beta distribution (i.e.
+    ; alpha + beta): the first (second) entry is the denominator for
     ; theory 1 (2).
     set b (list (a1 + b1) (a2 + b2))
-    ; calculate the prior (i.e. mean of the beta distribution) from the random 
+    ; calculate the prior (i.e. mean of the beta distribution) from the random
     ; alphas / betas.
     calc-posterior
     compute-strategies
@@ -185,6 +185,15 @@ end
 
 
 
+; reports a draw from the binomial distribution with n pulls and probability p
+to-report binomial [n p]
+  report length filter [ ?1 -> ?1 < p ] n-values n [random-float 1]
+end
+
+
+
+
+
 ; Researchers pull from their respective slot machine:
 ; the binomial distribution is approximated by the normal distribution with
 ; the same mean and variance. This approximation is highly accurate for all
@@ -196,6 +205,7 @@ end
 to pull
   let mysignal item mytheory subj-th-i-signal
   set successes [0 0]
+  ifelse pulls > 100 [
   let successes-normal round random-normal
   (pulls * mysignal) sqrt (pulls * mysignal * (1 - mysignal) )
   ifelse successes-normal > 0 and successes-normal <= pulls [
@@ -204,6 +214,10 @@ to pull
     if successes-normal > pulls [
       set successes replace-item mytheory successes pulls
     ]
+  ]
+  ][
+    let successes-binomial binomial pulls mysignal
+    set successes replace-item mytheory successes successes-binomial
   ]
 end
 
@@ -222,7 +236,7 @@ end
 
 
 
-; the sharing of information between researchers optionally including 
+; the sharing of information between researchers optionally including
 ; critical-interaction
 to share
   let cur-turtle self
@@ -233,7 +247,7 @@ to share
   ask link-neighbors [
     ifelse mytheory = cur-turtle-th or not critical-interaction [
       set successvec (map + successvec successes)
-      set pullcounter replace-item mytheory pullcounter 
+      set pullcounter replace-item mytheory pullcounter
         (item mytheory pullcounter + pulls)
     ][
       let other-successes successes
@@ -242,7 +256,7 @@ to share
       if other-success-ratio > item mytheory [current-theory-info] of
         cur-turtle [
         ask cur-turtle [
-          evaluate-critically         
+          evaluate-critically
         ]
       ]
       ask cur-turtle [
@@ -261,7 +275,7 @@ end
 
 
 ; If researchers communicate with researchers from another theory they might
-; interact critically 
+; interact critically
 to evaluate-critically
   let actual-prob-suc 0
   ifelse mytheory = 0 [
@@ -282,7 +296,7 @@ end
 
 
 
-; calculates from a given a (= alpha) and b (= alpha + beta) the belief of a 
+; calculates from a given a (= alpha) and b (= alpha + beta) the belief of a
 ; researcher i.e. the mean of the beta distribution
 to calc-posterior
   set current-theory-info (map / a b)
@@ -399,10 +413,10 @@ SLIDER
 288
 pulls
 pulls
-100
+1
 6000
 1000.0
-100
+1
 1
 NIL
 HORIZONTAL
@@ -609,10 +623,10 @@ B/c the normal distribution is a continuous distribution the outcome is rounded 
 
 ## Variables
 
-Default-values have been set to mirror Zollman's (2010) model. The slider ranges are mostly set to mirror the ranges considered by Rosenstock et al. (2016). The exceptions are:
+Default-values have been set to mirror Zollman's (2010) model. The slider ranges are mostly set to mirror the ranges considered by Rosenstock et al. (2016) ( pulls correspond to `n` in Rosenstock et al.(2016)). The exceptions are:
 
   * The signal ranges have a larger interval
-  * The pulls range doesn't start at 1 but at 100 because of the normal approximation potentially not being accurate enough for low numbers of pulls. ( pulls correspond to `n` in Rosenstock et al.(2016))
+ 
 
 ### Globals
 
