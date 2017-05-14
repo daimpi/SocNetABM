@@ -1,10 +1,11 @@
 turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
-  mytheory successes subj-th-i-signal crit-interact-lock confidence]
+  mytheory successes subj-th-i-signal crit-interact-lock confidence
+  avg-neighbor-signal]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
-  confidence-cutoff converged-ticks last-converged-th max-confidence 
+  confidence-cutoff converged-ticks last-converged-th
   max-ticks converge-reporters converge-reporters-values
-  run-start-scientists-save rndseed]
+  run-start-scientists-save rndseed g-confidence g-depressed-confidence]
 
 __includes ["protocol.nls"]
 
@@ -27,12 +28,11 @@ to setup [rs]
     let a2 init-ab
     let b2 init-ab
     set a list a1 a2
-    ; b contains the denominator of the mean of the beta distribution (i.e. 
-    ; alpha + beta): the first (second) entry is the denominator for 
+    ; b contains the denominator of the mean of the beta distribution (i.e.
+    ; alpha + beta): the first (second) entry is the denominator for
     ; theory 1 (2).
     set b (list (a1 + b1) (a2 + b2))
-    set current-theory-info [0 0]
-    ; calculate the prior (i.e. mean of the beta distribution) from the random 
+    ; calculate the prior (i.e. mean of the beta distribution) from the random
     ; alphas / betas.
     calc-posterior
     compute-strategies
@@ -92,8 +92,7 @@ end
 
 ; initializes the hidden variables (= not set in the interface)
 to init-hidden-variables
-  set confidence-cutoff 10 ^ 4
-  set max-confidence 10 ^ 5
+  set confidence-cutoff 1 - (1 / 10 ^ 4)
   set max-ticks 10000
 end
 
@@ -186,6 +185,15 @@ end
 
 
 
+; reports a draw from the binomial distribution with n pulls and probability p
+to-report binomial [n p]
+  report length filter [ ?1 -> ?1 < p ] n-values n [random-float 1]
+end
+
+
+
+
+
 ; Researchers pull from their respective slot machine:
 ; the binomial distribution is approximated by the normal distribution with
 ; the same mean and variance. This approximation is highly accurate for all
@@ -197,6 +205,7 @@ end
 to pull
   let mysignal item mytheory subj-th-i-signal
   set successes [0 0]
+  ifelse pulls > 100 [
   let successes-normal round random-normal
   (pulls * mysignal) sqrt (pulls * mysignal * (1 - mysignal) )
   ifelse successes-normal > 0 and successes-normal <= pulls [
@@ -205,6 +214,10 @@ to pull
     if successes-normal > pulls [
       set successes replace-item mytheory successes pulls
     ]
+  ]
+  ][
+    let successes-binomial binomial pulls mysignal
+    set successes replace-item mytheory successes successes-binomial
   ]
 end
 
@@ -223,7 +236,7 @@ end
 
 
 
-; the sharing of information between researchers optionally including 
+; the sharing of information between researchers optionally including
 ; critical-interaction
 to share
   let cur-turtle self
@@ -234,7 +247,7 @@ to share
   ask link-neighbors [
     ifelse mytheory = cur-turtle-th or not critical-interaction [
       set successvec (map + successvec successes)
-      set pullcounter replace-item mytheory pullcounter 
+      set pullcounter replace-item mytheory pullcounter
         (item mytheory pullcounter + pulls)
     ][
       let other-successes successes
@@ -243,7 +256,7 @@ to share
       if other-success-ratio > item mytheory [current-theory-info] of
         cur-turtle [
         ask cur-turtle [
-          evaluate-critically         
+          evaluate-critically
         ]
       ]
       ask cur-turtle [
@@ -262,7 +275,7 @@ end
 
 
 ; If researchers communicate with researchers from another theory they might
-; interact critically 
+; interact critically
 to evaluate-critically
   let actual-prob-suc 0
   ifelse mytheory = 0 [
@@ -283,7 +296,7 @@ end
 
 
 
-; calculates from a given a (= alpha) and b (= alpha + beta) the belief of a 
+; calculates from a given a (= alpha) and b (= alpha + beta) the belief of a
 ; researcher i.e. the mean of the beta distribution
 to calc-posterior
   set current-theory-info (map / a b)
@@ -334,74 +347,6 @@ to set-researcher-colors
   ][
     set color turquoise
   ]
-end
-
-
-
-
-
-; Calculates how confident the researcher is in the fact that her current best 
-; theory is actually the best theory (i.e. how unlikely it is that she will 
-; change her mind). This calculation only makes sense in case researchers have
-; converged.
-to calc-confidence
-  let worst-signal [item mytheory subj-th-i-signal] of min-one-of turtles [
-    item mytheory subj-th-i-signal]
-  ask turtles [
-    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
-      * strategy-threshold
-    let cur-theory mytheory
-    let avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
-      (turtle-set link-neighbors self)
-    ; if the scientist would be given sufficient time for her belief to
-    ; converge to the average signal of her and her link-neighbors, would
-    ; this be enough for her to abandon her current theory? If so, she's not
-    ; confident enough.
-    if avg-neighbor-signal <= belief-to-beat [
-      set confidence 0
-      stop
-    ]
-    ; the following calculations are based on probability maximization of the 
-    ; normal-distribution. This is separately documented at [placeholder].
-    let alpha item mytheory a
-    let varepsilon avg-neighbor-signal - belief-to-beat
-    let delta item mytheory current-theory-info - belief-to-beat
-    if (2 * alpha - 1) * delta <= belief-to-beat [
-      set confidence 0
-      stop
-    ]
-    let exit-probability 0.5 + 0.5 * erf (
-      ((0 - 2 * alpha + 1) * delta + belief-to-beat) 
-      / (sqrt((0 - 2 * alpha * delta + delta + belief-to-beat) 
-      * (belief-to-beat + varepsilon) * (0 - 1 + belief-to-beat + varepsilon) 
-      / (varepsilon * (belief-to-beat + delta))) 
-      * (belief-to-beat + delta)))
-    ifelse exit-probability > 0 [
-      set confidence 1 / exit-probability
-      if confidence > max-confidence [
-        set confidence max-confidence
-      ]
-    ][
-     set confidence max-confidence
-    ]
-  ]
-end
-
-
-
-
-
-; reports a numerical approximation for the error-function function on its 
-; negative domain, therefore the argument (x) must be smaller than 0. For 
-; sources see infotab.
-to-report erf [x]
-  let t (1 - .5 * x)
-  report exp ( 0 - x ^ 2 - 1.26551223 + 1.00002368 / t 
-    + .37409196 / t ^ 2 + 0.09678418 / t ^ 3 
-    - .18628806 / t ^ 4 + .27886807 / t ^ 5 
-    - 1.13520398 / t ^ 6 + 1.48851587 / t ^ 7 
-    - .82215223 / t ^ 8 + .17087277 / t ^ 9) 
-    / t - 1
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -468,10 +413,10 @@ SLIDER
 288
 pulls
 pulls
-100
+1
 6000
 1000.0
-100
+1
 1
 NIL
 HORIZONTAL
@@ -678,10 +623,10 @@ B/c the normal distribution is a continuous distribution the outcome is rounded 
 
 ## Variables
 
-Default-values have been set to mirror Zollman's (2010) model. The slider ranges are mostly set to mirror the ranges considered by Rosenstock et al. (2016). The exceptions are:
+Default-values have been set to mirror Zollman's (2010) model. The slider ranges are mostly set to mirror the ranges considered by Rosenstock et al. (2016) ( pulls correspond to `n` in Rosenstock et al.(2016)). The exceptions are:
 
   * The signal ranges have a larger interval
-  * The pulls range doesn't start at 1 but at 100 because of the normal approximation potentially not being accurate enough for low numbers of pulls. ( pulls correspond to `n` in Rosenstock et al.(2016))
+ 
 
 ### Globals
 
@@ -709,9 +654,10 @@ The sum of critical interactions scientists on theory 1(2) encountered.
 #### confidence-cutoff
 
 * type: integer
-* example: 10000  
+* example: 0.9999 
 
-A hidden variable: the confidence that the least confident scientist has to reach before the run is terminated.
+The global-confidence `g-confidence` must be higher than this value for the run to be terminated.
+
 
 #### converged-ticks
 
@@ -726,13 +672,6 @@ The number of ticks which have passed since the researchers converged for the la
 * example: 0  
 
 The theory the researchers converged on the last time they converged: 0 = th1, 1 = th2
-
-#### max-confidence
-
-* type: integer
-* example: 100000  
-
-A hidden variable: the maximal confidence a researcher can reach.
 
 #### max-ticks
 
@@ -768,6 +707,20 @@ The number of scientists on [th1 th2] at the beginning of the run.
 * example: -2147452934  
 
 Stores the random-seed of the current run.
+
+#### g-confidence
+
+* format: float
+* example: 0.9993
+
+Global-confidence: the probability that not a single researcher will switch theories i.e. the probability that this convergence is final. Range: [0,1]
+
+#### g-depressed-confidence
+
+* format: boolean
+* example: false
+
+If there is a researcher for whom, if given sufficient time for her belief to converge to the average signal of her and her link-neighbors, this would this be enough to abandon her current theory, her confidence will always be zero and therefore `g-confidence` will also be zero. In this case `g-depressed-confidence` will be set to true in order to avoid redundant confidence calculations.
 
 
 ### Turtles-own
@@ -847,6 +800,13 @@ For how many more rounds the researcher is blocked from pursuing strategies (i.e
 * example 1337.94038  
 
 How confident the researcher is in the fact that her current best theory is actually the best theory (i.e. how unlikely it is that she will change her mind). Only calculated once all researchers have converged to one theory.  
+
+#### avg-neighbor-signal
+
+* type: float
+* example: 0.499
+
+Only set once all researchers converged. This is the average signal the researcher and her link-neighbors currently observe for the theory they converged on.
 
 
 ## CREDITS AND REFERENCES

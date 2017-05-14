@@ -18,10 +18,10 @@ B/c the normal distribution is a continuous distribution the outcome is rounded 
 
 ## Variables
 
-Default-values have been set to mirror Zollman's (2010) model. The slider ranges are mostly set to mirror the ranges considered by Rosenstock et al. (2016). The exceptions are:
+Default-values have been set to mirror Zollman's (2010) model. The slider ranges are mostly set to mirror the ranges considered by Rosenstock et al. (2016) ( pulls correspond to `n` in Rosenstock et al.(2016)). The exceptions are:
 
   * The signal ranges have a larger interval
-  * The pulls range doesn't start at 1 but at 100 because of the normal approximation potentially not being accurate enough for low numbers of pulls. ( pulls correspond to `n` in Rosenstock et al.(2016))
+ 
 
 ### Globals
 
