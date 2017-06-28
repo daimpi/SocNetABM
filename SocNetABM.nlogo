@@ -4,7 +4,7 @@ turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   confidence-cutoff converged-ticks last-converged-th
-  max-ticks converge-reporters converge-reporters-values
+  converge-reporters converge-reporters-values
   run-start-scientists-save rndseed g-confidence g-depressed-confidence]
 
 __includes ["protocol.nls"]
@@ -93,7 +93,6 @@ end
 ; initializes the hidden variables (= not set in the interface)
 to init-hidden-variables
   set confidence-cutoff 1 - (1 / 10 ^ 4)
-  set max-ticks 10000
 end
 
 
@@ -601,6 +600,21 @@ NIL
 NIL
 NIL
 0
+
+SLIDER
+211
+457
+383
+490
+max-ticks
+max-ticks
+0
+100000
+10000.0
+100
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 # UNDER CONSTRUCTION
@@ -1181,6 +1195,9 @@ NetLogo 6.0.1
     <enumeratedValueSet variable="crit-jump-threshold">
       <value value="1"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="max-ticks">
+      <value value="10000"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="crit-interact-base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup new-seed</setup>
@@ -1236,6 +1253,9 @@ NetLogo 6.0.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="crit-jump-threshold">
       <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-ticks">
+      <value value="10000"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
