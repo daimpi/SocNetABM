@@ -76,6 +76,9 @@ to calc-confidence
     if stop? [stop]
     let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
       * strategy-threshold
+    ; not entirerly sure whether this cutoff at 0 is needed, but I've added it 
+    ; for cautionarly reasons
+    set belief-to-beat max (list 0 belief-to-beat)
     let cur-theory mytheory
     if converged-ticks = 0 [
       set avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 

@@ -311,7 +311,7 @@ to compute-strategies
   let best-th-position position max-score current-theory-info
   ; if the other entry is in the interval for best theories it is also added
   let other-score item ((best-th-position + 1) mod 2) current-theory-info
-  ifelse other-score >= max-score * strategy-threshold [
+  ifelse other-score >= max-score - strategy-threshold [
     set cur-best-th [0 1]
     set indiff-count indiff-count + 1
   ][
@@ -474,8 +474,8 @@ strategy-threshold
 strategy-threshold
 0
 1
-1.0
-0.01
+0.0
+0.001
 1
 NIL
 HORIZONTAL
@@ -1176,7 +1176,7 @@ NetLogo 6.0.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="strategy-threshold">
-      <value value="1"/>
+      <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="network-structure">
       <value value="&quot;cycle&quot;"/>
@@ -1235,7 +1235,7 @@ NetLogo 6.0.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="strategy-threshold">
-      <value value="1"/>
+      <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="network-structure">
       <value value="&quot;cycle&quot;"/>
