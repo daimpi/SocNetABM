@@ -65,8 +65,8 @@ to go
       set crit-interact-lock crit-interact-lock - 1
     ]
   ]
-  if nature-evidence-frequency > 0 and ticks != 0 
-    and ticks mod (1 / nature-evidence-frequency) = 0 [    
+  if nature-evidence-frequency > 0 and ticks != 0
+    and ticks mod (1 / nature-evidence-frequency) = 0 [
     ask turtles [
       update-from-nature
     ]
@@ -109,7 +109,8 @@ end
 ; the reporters which have to be collected when researchers converge.
 to init-converge-reporters
   set converge-reporters (list [ -> average-belief 0 true]
-  [ -> average-cum-successes 0 true] [ -> average-confidence true])
+  [ -> average-cum-successes 0 true] [ -> average-confidence true]
+  [ -> average-signal 0 true])
 end
 
 
@@ -1192,6 +1193,8 @@ NetLogo 6.0.1
     <metric>crit-interactions-th1</metric>
     <metric>crit-interactions-th2</metric>
     <metric>round-converged</metric>
+    <metric>average-signal "th1" false</metric>
+    <metric>average-signal "th2" false</metric>
     <metric>average-belief "th1" false</metric>
     <metric>average-belief "th2" false</metric>
     <metric>average-cum-successes "th1" false</metric>
@@ -1234,64 +1237,8 @@ NetLogo 6.0.1
     <enumeratedValueSet variable="max-ticks">
       <value value="10000"/>
     </enumeratedValueSet>
-  </experiment>
-  <experiment name="crit-interact-base-run" repetitions="10000" runMetricsEveryStep="false">
-    <setup>setup new-seed</setup>
-    <go>go</go>
-    <exitCondition>exit-condition</exitCondition>
-    <metric>successful-run</metric>
-    <metric>average-jumps</metric>
-    <metric>avg-indiff-time</metric>
-    <metric>run-start-scientists "th1"</metric>
-    <metric>run-start-scientists "th2"</metric>
-    <metric>run-end-scientists "th1"</metric>
-    <metric>run-end-scientists "th2"</metric>
-    <metric>crit-interactions-th1</metric>
-    <metric>crit-interactions-th2</metric>
-    <metric>round-converged</metric>
-    <metric>average-signal "th1"</metric>
-    <metric>average-signal "th2"</metric>
-    <metric>average-belief "th1" false</metric>
-    <metric>average-belief "th2" false</metric>
-    <metric>average-cum-successes "th1" false</metric>
-    <metric>average-cum-successes "th2" false</metric>
-    <metric>average-confidence false</metric>
-    <metric>rndseed</metric>
-    <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
-    <enumeratedValueSet variable="th1-signal">
-      <value value="0.5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="th2-signal">
-      <value value="0.499"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="pulls">
-      <value value="1000"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="jump-threshold">
-      <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="strategy-threshold">
+    <enumeratedValueSet variable="nature-evidence-frequency">
       <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="network-structure">
-      <value value="&quot;cycle&quot;"/>
-      <value value="&quot;wheel&quot;"/>
-      <value value="&quot;complete&quot;"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-prior">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="critical-interaction">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-strength">
-      <value value="0.001"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="crit-jump-threshold">
-      <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-ticks">
-      <value value="10000"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

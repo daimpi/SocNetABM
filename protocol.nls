@@ -230,19 +230,22 @@ end
 
 
 
-; reports the current average signal for th# and updates the global
-; `th-i-signal` accordingly
-to-report average-signal [th#]
-  if critical-interaction and th-i-signal = (list th1-signal th2-signal) [
-    set th-i-signal [0 0]
-    ask turtles [
-      set th-i-signal (map + th-i-signal subj-th-i-signal) 
-    ]
-    set th-i-signal map [ cur-th-signal -> cur-th-signal / scientists]
-      th-i-signal
+; reports the average signal for th# at the time of final convergence
+; arguments:
+; - th# = theory, type: string
+; - rec = recording?, type: boolean
+to-report average-signal [th# rec?]
+  let identifier "avgsignal"
+  ifelse rec? [
+    let avg-signal-th1 mean [item 0 subj-th-i-signal] of turtles
+    let avg-signal-th2 mean [item 1 subj-th-i-signal] of turtles
+    report (list identifier avg-signal-th1 avg-signal-th2)
+  ][
+    set th# translate-from-string th#
+    let avg-signal but-first first filter [curitem -> 
+      first curitem = identifier] converge-reporters-values
+    report item th# avg-signal
   ]
-  set th# translate-from-string th#
-  report item th# th-i-signal
 end
 
 
