@@ -49,9 +49,10 @@ The sum of critical interactions scientists on theory 1(2) encountered.
 #### confidence-cutoff
 
 * type: integer
-* example: 10000  
+* example: 0.9999 
 
-A hidden variable: the confidence that the least confident scientist has to reach before the run is terminated.
+The global-confidence `g-confidence` must be higher than this value for the run to be terminated.
+
 
 #### converged-ticks
 
@@ -66,13 +67,6 @@ The number of ticks which have passed since the researchers converged for the la
 * example: 0  
 
 The theory the researchers converged on the last time they converged: 0 = th1, 1 = th2
-
-#### max-confidence
-
-* type: integer
-* example: 100000  
-
-A hidden variable: the maximal confidence a researcher can reach.
 
 #### max-ticks
 
@@ -108,6 +102,20 @@ The number of scientists on [th1 th2] at the beginning of the run.
 * example: -2147452934  
 
 Stores the random-seed of the current run.
+
+#### g-confidence
+
+* format: float
+* example: 0.9993
+
+Global-confidence: the probability that not a single researcher will switch theories i.e. the probability that this convergence is final. Range: [0,1]
+
+#### g-depressed-confidence
+
+* format: boolean
+* example: false
+
+If there is a researcher for whom, if given sufficient time for her belief to converge to the average signal of her and her link-neighbors, this would this be enough to abandon her current theory, her confidence will always be zero and therefore `g-confidence` will also be zero. In this case `g-depressed-confidence` will be set to true in order to avoid redundant confidence calculations.
 
 
 ### Turtles-own
@@ -187,6 +195,13 @@ For how many more rounds the researcher is blocked from pursuing strategies (i.e
 * example 1337.94038  
 
 How confident the researcher is in the fact that her current best theory is actually the best theory (i.e. how unlikely it is that she will change her mind). Only calculated once all researchers have converged to one theory.  
+
+#### avg-neighbor-signal
+
+* type: float
+* example: 0.499
+
+Only set once all researchers converged. This is the average signal the researcher and her link-neighbors currently observe for the theory they converged on.
 
 
 ## CREDITS AND REFERENCES
