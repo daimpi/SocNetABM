@@ -75,7 +75,7 @@ to calc-confidence
   ask turtles [
     if stop? [stop]
     let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
-      * strategy-threshold
+      - strategy-threshold
     ; not entirerly sure whether this cutoff at 0 is needed, but I've added it 
     ; for cautionarly reasons
     set belief-to-beat max (list 0 belief-to-beat)
