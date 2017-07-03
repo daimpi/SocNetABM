@@ -65,6 +65,12 @@ to go
       set crit-interact-lock crit-interact-lock - 1
     ]
   ]
+  if nature-evidence-frequency > 0 and ticks != 0 
+    and ticks mod (1 / nature-evidence-frequency) = 0 [
+    ask turtles [
+      update-from-nature
+    ]
+  ]
   ask turtles with [crit-interact-lock = 0
     and not member? mytheory cur-best-th] [
     act-on-strategies
@@ -317,6 +323,20 @@ to compute-strategies
   ][
     set cur-best-th (list best-th-position)
   ]
+end
+
+
+
+
+
+to update-from-nature
+  let actual-prob-suc 0
+  if mytheory = 0 [
+    set actual-prob-suc 1
+  ]
+  let old-th-i-signal item mytheory subj-th-i-signal
+  set subj-th-i-signal replace-item mytheory subj-th-i-signal (old-th-i-signal
+    + (actual-prob-suc - old-th-i-signal) * crit-strength)
 end
 
 
@@ -612,6 +632,21 @@ max-ticks
 100000
 10000.0
 100
+1
+NIL
+HORIZONTAL
+
+SLIDER
+211
+501
+413
+534
+nature-evidence-frequency
+nature-evidence-frequency
+0
+1
+0.0
+0.001
 1
 NIL
 HORIZONTAL
