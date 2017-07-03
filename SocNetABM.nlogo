@@ -66,10 +66,11 @@ to go
     ]
   ]
   if nature-evidence-frequency > 0 and ticks != 0 
-    and ticks mod (1 / nature-evidence-frequency) = 0 [
+    and ticks mod (1 / nature-evidence-frequency) = 0 [    
     ask turtles [
       update-from-nature
     ]
+    set g-depressed-confidence false
   ]
   ask turtles with [crit-interact-lock = 0
     and not member? mytheory cur-best-th] [

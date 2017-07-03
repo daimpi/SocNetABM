@@ -81,7 +81,12 @@ to calc-confidence
     ; for cautionarly reasons
     set belief-to-beat max (list 0 belief-to-beat)
     let cur-theory mytheory
-    if converged-ticks = 0 [
+    ; the -1 correction in ticks compensates for the fact that this procedure
+    ; will be called after the go procedure and therefore the tick-counter has 
+    ; already advanced one step further
+    if converged-ticks = 0 or (nature-evidence-frequency > 0 
+      and (ticks - 1) != 0 
+      and (ticks - 1) mod (1 / nature-evidence-frequency) = 0) [
       set avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
         (turtle-set link-neighbors self)
     ]
