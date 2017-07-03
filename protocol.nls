@@ -39,8 +39,9 @@ end
 to-report converged
   let count-th1-scientists count turtles with [
     mytheory = 0 and member? 0 cur-best-th]  
-  ifelse count-th1-scientists = scientists or
-    count turtles with [mytheory = 1 and member? 1 cur-best-th] = scientists [
+  ifelse count-th1-scientists = scientists 
+    or (nature-evidence-frequency = 0 and count turtles with [
+    mytheory = 1 and member? 1 cur-best-th] = scientists) [
     ifelse count-th1-scientists > 0 [
       if last-converged-th = 1 [
         set converged-ticks 0
