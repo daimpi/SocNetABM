@@ -74,7 +74,7 @@ to calc-confidence
   if g-depressed-confidence [stop]
   let stop? false
   ask turtles [
-    if stop? [stop]
+    if stop? and nature-evidence-frequency = 0 [stop]
     let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
       - strategy-threshold
     ; not entirerly sure whether this cutoff at 0 is needed, but I've added it 
