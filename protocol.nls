@@ -11,8 +11,7 @@ to-report exit-condition
       set-converge-reporters-values
     ]
     set converged-ticks converged-ticks + 1
-    let min-confidence [confidence] of min-one-of turtles [confidence]
-    ifelse min-confidence > confidence-cutoff [
+    ifelse g-confidence > confidence-cutoff [
       report true
     ][
       if ticks >= max-ticks [
