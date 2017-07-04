@@ -1,11 +1,12 @@
 turtles-own [a b theory-jump times-jumped cur-best-th current-theory-info
   mytheory successes subj-th-i-signal crit-interact-lock confidence
-  avg-neighbor-signal]
+  avg-neighbor-signal share-group]
 
 globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   confidence-cutoff converged-ticks last-converged-th
   converge-reporters converge-reporters-values
-  run-start-scientists-save rndseed g-confidence g-depressed-confidence]
+  run-start-scientists-save rndseed g-confidence g-depressed-confidence
+  g-fast-sharing-enabled]
 
 __includes ["protocol.nls"]
 
@@ -41,6 +42,12 @@ to setup [rs]
     set subj-th-i-signal th-i-signal
   ]
   create-network
+  ask turtles [
+    set share-group (turtle-set link-neighbors self)
+  ]
+  set g-fast-sharing-enabled (network-structure = "complete"
+    or (network-structure = "wheel" and scientists <= 4)
+    or (network-structure = "cycle" and scientists <= 3) )
   let th-1-scientist count turtles with [mytheory = 0]
   let th-2-scientist count turtles with [mytheory = 1]
   set run-start-scientists-save (list th-1-scientist th-2-scientist)
@@ -55,10 +62,15 @@ end
 to go
   ask turtles [
     pull
-    integrate-own-pull-info
+  ]
+  let fast-sharing (g-fast-sharing-enabled and converged-light)
+  if fast-sharing [
+    share-fast
   ]
   ask turtles [
-    share
+    if not fast-sharing [
+      share
+    ]
     calc-posterior
     compute-strategies
     if crit-interact-lock > 0 [
@@ -232,11 +244,16 @@ end
 
 
 
-; The information the scientist has obtained via her own pulls is integrated
-; into her memory
-to integrate-own-pull-info
-  set a (map + a successes)
-  set b replace-item mytheory b (item mytheory b + pulls)
+; the sharing of information between researchers in case that they are all on
+; the same theory and the structure of the network is equivalent to "complete".
+to share-fast
+  let cur-theory [mytheory] of one-of turtles
+  let cum-successes sum [item cur-theory successes] of turtles
+  let cum-pulls pulls * scientists
+  ask turtles [
+    set a replace-item cur-theory a (item cur-theory a + cum-successes)
+    set b replace-item cur-theory b (item cur-theory b + cum-pulls)
+  ]
 end
 
 
@@ -251,7 +268,7 @@ to share
   ; first list entry is th1 2nd is th2
   let successvec [0 0]
   let pullcounter [0 0]
-  ask link-neighbors [
+  ask share-group [
     ifelse mytheory = cur-turtle-th or not critical-interaction [
       set successvec (map + successvec successes)
       set pullcounter replace-item mytheory pullcounter
@@ -654,23 +671,23 @@ NIL
 HORIZONTAL
 
 @#$#@#$#@
-# UNDER CONSTRUCTION
+# UNDER CONSTRUCTION  
 
 # SocNetABM
-NetLogo iteration of Zollman's (2010) ABM with critical interaction.
+NetLogo iteration of Zollman's (2010) ABM with critical interaction.  
 
 
 
 ## HOW IT WORKS
 
-Beliefs of the researchers are modeled via a beta distribution: The mean of the beta distribution is their current belief.
+Beliefs of the researchers are modeled via a beta distribution: The mean of the beta distribution is their current belief.  
 
 
 
 ## NETLOGO FEATURES
 
 The binomial distribution is approximated by the normal distribution with the same mean and variance. This approximation is highly accurate for all parameter values from the interface.  
-B/c the normal distribution is a continuous distribution the outcome is rounded and there is a safety check which constrains the distribution to the interval [0, pulls] to prevent negative- or higher than pulls numbers of successes.
+B/c the normal distribution is a continuous distribution the outcome is rounded and there is a safety check which constrains the distribution to the interval [0, pulls] to prevent negative- or higher than pulls numbers of successes.  
 
 ## Variables
 
@@ -684,14 +701,14 @@ Default-values have been set to mirror Zollman's (2010) model. The slider ranges
 #### th-i-signal
 
 * type: float-list
-* example: [0.5 0.499]
+* example: [0.5 0.499]  
 
 The average objective probability of success (ops)for [theory-1 theory-2].
   
 #### indiff-count
 
 * type: integer
-* example: 1003
+* example: 1003  
 
 The sum of number of rounds each scientist was indifferent between the two theories.
   
@@ -705,7 +722,7 @@ The sum of critical interactions scientists on theory 1(2) encountered.
 #### confidence-cutoff
 
 * type: integer
-* example: 0.9999 
+* example: 0.9999  
 
 The global-confidence `g-confidence` must be higher than this value for the run to be terminated.
 
@@ -734,44 +751,51 @@ The maximal number of rounds before a run is terminated by the exit condition.
 #### converge-reporters
 
 * type: anonymous reporters list
-* example: [(anonymous reporter: [ average-belief 0 true ]) (anonymous reporter: [ average-cum-successes 0 true ]) (anonymous reporter: [ average-confidence true ])]  
+* example: [(anonymous reporter: [ average-belief 0 true ]) (anonymous reporter: [ average-cum-successes 0 true ]) (anonymous reporter: [ average-confidence true ]) (anonymous reporter: [ average-signal 0 true ])]  
 
-Reporters which have to be collected in the round when researchers converge. The values for those reporters is then stored in the global `converge-reporters-values` and retrieved by BehaviourSpace at the end of the run.
+Reporters which have to be collected in the round when researchers converge. The values for those reporters is then stored in the global `converge-reporters-values` and retrieved by BehaviourSpace at the end of the run.  
 
 #### converge-reporters-values
 
 * type: list
-* example: [["avgbelief" 0.4998 0.4980] ["avgsuc" 757100.9795 383442.9715] ["avgconfidence" 60234.0298]]
+* example: [["avgbelief" 0.4997690253321044 0.49127250748536755] ["avgsuc" 110667.02991226684 21169.651936606337] ["avgconfidence" 0.7645093577413972] ["avgsignal" 0.5 0.499]]  
   
-The values from the anonymous reporters in `converge-reporters`, recorded at the last time researchers converged.
+The values from the anonymous reporters in `converge-reporters`, recorded at the last time researchers converged.  
 
 #### run-start-scientists-save
 
 * type: integer-list
 * example: [5 5]  
 
-The number of scientists on [th1 th2] at the beginning of the run.
+The number of scientists on [th1 th2] at the beginning of the run.  
 
 #### rndseed
 
 * format: integer
 * example: -2147452934  
 
-Stores the random-seed of the current run.
+Stores the random-seed of the current run.  
 
 #### g-confidence
 
 * format: float
-* example: 0.9993
+* example: 0.9993  
 
-Global-confidence: the probability that not a single researcher will switch theories i.e. the probability that this convergence is final. Range: [0,1]
+Global-confidence: the probability that not a single researcher will switch theories i.e. the probability that this convergence is final. Range: [0,1]  
 
 #### g-depressed-confidence
 
 * format: boolean
-* example: false
+* example: false  
 
-If there is a researcher for whom, if given sufficient time for her belief to converge to the average signal of her and her link-neighbors, this would this be enough to abandon her current theory, her confidence will always be zero and therefore `g-confidence` will also be zero. In this case `g-depressed-confidence` will be set to true in order to avoid redundant confidence calculations.
+If there is a researcher for whom, if given sufficient time for her belief to converge to the average signal of her and her link-neighbors, this would this be enough to abandon her current theory, her confidence will always be zero and therefore `g-confidence` will also be zero. In this case `g-depressed-confidence` will be set to true in order to avoid redundant confidence calculations.  
+
+#### g-fast-sharing-enabled
+
+* format: boolean
+* example: true  
+
+When the network is a de facto complete network, scientists might be able to utilize a more performant sharing procedure (the second condition is that they have to be converged): `share-fast`. This variable signals whether or not such a de-facto complete network is present in the current run.  
 
 
 ### Turtles-own
@@ -787,7 +811,7 @@ The theories the researcher currently considers best: 0 = theory 1, 1 = theory 2
 * type: float-list
 * example: [0.44945 0.594994]  
 
-Contains the researchers current evaluation of the two theories. Entry 1 is the evaluation for the first theory and entry 2 for second.
+Contains the researchers current evaluation of the two theories. Entry 1 is the evaluation for the first theory and entry 2 for second.  
 
 #### mytheory
 
@@ -855,9 +879,16 @@ How confident the researcher is in the fact that her current best theory is actu
 #### avg-neighbor-signal
 
 * type: float
-* example: 0.499
+* example: 0.499  
 
 Only set once all researchers converged. This is the average signal the researcher and her link-neighbors currently observe for the theory they converged on.
+
+#### share-group
+
+* type: turtle-set
+* example: (agentset, 3 turtles)  
+
+Contains all the scientists this scientist will share information with, including herself. This exists for performance reasons and will be set during `setup`.
 
 
 ## CREDITS AND REFERENCES

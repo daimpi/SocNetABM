@@ -62,6 +62,19 @@ end
 
 
 
+; reports whether all scientists are on the same theory
+to-report converged-light
+  if any? turtles with [mytheory = 0] and any? turtles with [mytheory = 1] [
+    report false
+  ]
+  report true
+end
+
+
+
+
+
+
 ; Calculates how confident the researcher is in the fact that her current best 
 ; theory is actually the best theory (i.e. how unlikely it is that she will 
 ; change her mind). This calculation only makes sense in case researchers have
