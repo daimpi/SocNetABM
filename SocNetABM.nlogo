@@ -1231,6 +1231,7 @@ NetLogo 6.0.1
     <metric>average-cum-successes "th1" false</metric>
     <metric>average-cum-successes "th2" false</metric>
     <metric>average-confidence false</metric>
+    <metric>g-confidence</metric>
     <metric>rndseed</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
