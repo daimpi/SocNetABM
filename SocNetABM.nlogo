@@ -78,7 +78,7 @@ to go
     ]
   ]
   if nature-evidence-frequency > 0 and ticks != 0
-    and ticks mod (1 / nature-evidence-frequency) = 0 [
+    and ticks mod nature-evidence-frequency = 0 [
     ask turtles [
       update-from-nature
     ]
@@ -309,7 +309,7 @@ to evaluate-critically
     set crit-interactions-th2 crit-interactions-th2 + 1
   ]
   if crit-interact-lock = 0 [
-    set crit-interact-lock crit-jump-threshold
+    set crit-interact-lock crit-jump-threshold + 1
   ]
   let old-th-i-signal item mytheory subj-th-i-signal
   set subj-th-i-signal replace-item mytheory subj-th-i-signal (old-th-i-signal
@@ -365,7 +365,7 @@ end
 ; Researchers potentially switch to the other theory
 to act-on-strategies
   set theory-jump theory-jump + 1
-  if theory-jump = jump-threshold [
+  if theory-jump = jump-threshold + 1 [
     ; set mytheory to the other theory
     set mytheory ((mytheory + 1) mod 2)
     set-researcher-colors
@@ -481,9 +481,9 @@ SLIDER
 388
 jump-threshold
 jump-threshold
-1
+0
 1000
-1.0
+0.0
 1
 1
 NIL
@@ -615,9 +615,9 @@ SLIDER
 625
 crit-jump-threshold
 crit-jump-threshold
-1
+0
 1000
-1.0
+0.0
 1
 1
 NIL
@@ -663,9 +663,9 @@ SLIDER
 nature-evidence-frequency
 nature-evidence-frequency
 0
-1
+1000
 0.0
-0.001
+1
 1
 NIL
 HORIZONTAL
@@ -1244,7 +1244,7 @@ NetLogo 6.0.1
       <value value="1000"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="jump-threshold">
-      <value value="1"/>
+      <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="strategy-threshold">
       <value value="0"/>
@@ -1264,7 +1264,7 @@ NetLogo 6.0.1
       <value value="0.001"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="crit-jump-threshold">
-      <value value="1"/>
+      <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-ticks">
       <value value="10000"/>

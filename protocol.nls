@@ -93,7 +93,7 @@ to calc-confidence
     ; already advanced one step further
     set force-nature-update? (nature-evidence-frequency > 0 
       and ticks > 1 
-      and (ticks - 1) mod (1 / nature-evidence-frequency) = 0)
+      and (ticks - 1) mod nature-evidence-frequency = 0)
   ]
   let cur-theory [mytheory] of one-of turtles
   let other-theory ((cur-theory + 1) mod 2)
