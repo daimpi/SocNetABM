@@ -1,7 +1,13 @@
 # UNDER CONSTRUCTION  
 
 # SocNetABM
-NetLogo iteration of Zollman's (2010) ABM with critical interaction.  
+NetLogo agent-based model (ABM) of scientific interaction aimed at examining how different degrees of connectedness of 
+scientists impact their efficiency in knowledge acquisition. The model is built on the basis of Zollman’s (2010) ABM
+by changing some of its idealizing assumptions that concern the representation of the central notions underlying the model: 
+epistemic success of the rivaling scientific theories, scientific interaction and the assessment in view of which scientists
+choose theories to work on. Our results suggest that whether and to which extent the degree of connectedness of a scientific
+community impacts its efficiency is a highly context dependent matter since different conditions deem strikingly different
+results.
 
 
 
