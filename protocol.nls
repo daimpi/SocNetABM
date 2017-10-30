@@ -33,13 +33,14 @@ end
 
 
 
-; reports true if all scientists converged to one theory and consider this theory
-; to be among their best theories
+; reports true if all scientists converged to one theory and consider this 
+; theory to be among their best theories
 to-report converged
   let count-th1-scientists count turtles with [
     mytheory = 0 and member? 0 cur-best-th]  
-  ifelse count-th1-scientists = scientists or
-    count turtles with [mytheory = 1 and member? 1 cur-best-th] = scientists [
+  ifelse count-th1-scientists = scientists 
+    or (nature-evidence-frequency = 0 and count turtles with [
+    mytheory = 1 and member? 1 cur-best-th] = scientists) [
     ifelse count-th1-scientists > 0 [
       if last-converged-th = 1 [
         set converged-ticks 0
@@ -61,27 +62,59 @@ end
 
 
 
+; reports whether all scientists are on the same theory
+to-report converged-light
+  if any? turtles with [mytheory = 0] and any? turtles with [mytheory = 1] [
+    report false
+  ]
+  report true
+end
+
+
+
+
+
+
 ; Calculates how confident the researcher is in the fact that her current best 
 ; theory is actually the best theory (i.e. how unlikely it is that she will 
 ; change her mind). This calculation only makes sense in case researchers have
 ; converged.
 to calc-confidence
-  if converged-ticks = 0 [
+  ;force-update is a boolean. It is true if scientists just converged this round
+  let force-update? (converged-ticks = 0)
+  if force-update? [
     set g-depressed-confidence false
   ]
   if g-depressed-confidence [stop]
-  let stop? false
+  let force-nature-update? 0
+  if not force-update? [
+    ; the -1 correction in ticks compensates for the fact that this procedure
+    ; will be called after the go procedure and therefore the tick-counter has 
+    ; already advanced one step further
+    set force-nature-update? (nature-evidence-frequency > 0 
+      and ticks > 1 
+      and (ticks - 1) mod nature-evidence-frequency = 0)
+  ]
+  let cur-theory [mytheory] of one-of turtles
+  let other-theory ((cur-theory + 1) mod 2)
+  let avg-neighbor-signal-complete 0
+  if g-fast-sharing-enabled and (force-update? or force-nature-update?) [
+    set avg-neighbor-signal-complete mean [item cur-theory subj-th-i-signal] of 
+        turtles
+  ]
   ask turtles [
-    if stop? [stop]
-    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
+    let belief-to-beat item other-theory current-theory-info
       - strategy-threshold
     ; not entirerly sure whether this cutoff at 0 is needed, but I've added it 
     ; for cautionarly reasons
-    set belief-to-beat max (list 0 belief-to-beat)
-    let cur-theory mytheory
-    if converged-ticks = 0 [
-      set avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
-        (turtle-set link-neighbors self)
+    set belief-to-beat max (list 0 belief-to-beat)    
+    if force-update? or force-nature-update? [
+      ifelse g-fast-sharing-enabled [
+        set avg-neighbor-signal avg-neighbor-signal-complete
+      ][
+        set avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
+          share-group
+      ]
     ]
     ; if the scientist would be given sufficient time for her belief to
     ; converge to the average signal of her and her link-neighbors, would
@@ -89,7 +122,6 @@ to calc-confidence
     ; confident enough.
     if avg-neighbor-signal <= belief-to-beat [
       set confidence 0
-      set stop? true
       set g-depressed-confidence true
       stop
     ]
@@ -100,7 +132,6 @@ to calc-confidence
     let delta item mytheory current-theory-info - belief-to-beat
     if (2 * alpha - 1) * delta <= belief-to-beat [
       set confidence 0
-      set stop? true
       stop
     ]
     let exit-probability 0.5 + 0.5 * erf (
@@ -115,11 +146,7 @@ to calc-confidence
      set confidence 1
     ]
   ]
-  ifelse stop? [
-    set g-confidence 0
-  ][
-    set g-confidence reduce * [confidence] of turtles
-  ]
+  set g-confidence reduce * [confidence] of turtles
 end
 
 
@@ -224,19 +251,22 @@ end
 
 
 
-; reports the current average signal for th# and updates the global
-; `th-i-signal` accordingly
-to-report average-signal [th#]
-  if critical-interaction and th-i-signal = (list th1-signal th2-signal) [
-    set th-i-signal [0 0]
-    ask turtles [
-      set th-i-signal (map + th-i-signal subj-th-i-signal) 
-    ]
-    set th-i-signal map [ cur-th-signal -> cur-th-signal / scientists]
-      th-i-signal
+; reports the average signal for th# at the time of final convergence
+; arguments:
+; - th# = theory, type: string
+; - rec = recording?, type: boolean
+to-report average-signal [th# rec?]
+  let identifier "avgsignal"
+  ifelse rec? [
+    let avg-signal-th1 mean [item 0 subj-th-i-signal] of turtles
+    let avg-signal-th2 mean [item 1 subj-th-i-signal] of turtles
+    report (list identifier avg-signal-th1 avg-signal-th2)
+  ][
+    set th# translate-from-string th#
+    let avg-signal but-first first filter [curitem -> 
+      first curitem = identifier] converge-reporters-values
+    report item th# avg-signal
   ]
-  set th# translate-from-string th#
-  report item th# th-i-signal
 end
 
 
