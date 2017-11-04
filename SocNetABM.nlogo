@@ -388,9 +388,9 @@ to set-researcher-colors
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+234
 10
-647
+671
 448
 -1
 -1
@@ -415,10 +415,10 @@ ticks
 30.0
 
 SLIDER
-13
-160
-185
-193
+235
+466
+407
+499
 th1-signal
 th1-signal
 0.1
@@ -430,10 +430,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-14
-206
-186
-239
+236
+512
+408
+545
 th2-signal
 th2-signal
 0.1
@@ -564,10 +564,10 @@ network-structure
 0
 
 PLOT
-663
-12
-863
-162
+692
+21
+892
+171
 Popularity
 Time steps
 scientists
@@ -641,31 +641,61 @@ NIL
 0
 
 SLIDER
-211
-457
-383
-490
+15
+162
+187
+195
 max-ticks
 max-ticks
 0
 100000
-10000.0
+100000.0
 100
 1
 NIL
 HORIZONTAL
 
 SLIDER
-211
-501
-413
-534
+15
+206
+217
+239
 nature-evidence-frequency
 nature-evidence-frequency
 0
 1000
 0.0
 1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+426
+468
+598
+501
+th1-aps
+th1-aps
+0
+1
+0.5
+0.001
+1
+NIL
+HORIZONTAL
+
+SLIDER
+426
+512
+598
+545
+th2-aps
+th2-aps
+0
+1
+0.499
+0.001
 1
 NIL
 HORIZONTAL
@@ -1205,7 +1235,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.1
+NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -1267,10 +1297,16 @@ NetLogo 6.0.1
       <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-ticks">
-      <value value="10000"/>
+      <value value="100000"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="nature-evidence-frequency">
       <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="th1-aps">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="th2-aps">
+      <value value="0.499"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
