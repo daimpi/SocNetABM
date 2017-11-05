@@ -304,12 +304,13 @@ to evaluate-critically
   let actual-prob-suc 0
   ifelse mytheory = 0 [
     set crit-interactions-th1 crit-interactions-th1 + 1
-    set actual-prob-suc 1
+    set actual-prob-suc th1-aps
   ][
     set crit-interactions-th2 crit-interactions-th2 + 1
   ]
   if crit-interact-lock = 0 [
     set crit-interact-lock crit-jump-threshold + 1
+    set actual-prob-suc th2-aps
   ]
   let old-th-i-signal item mytheory subj-th-i-signal
   set subj-th-i-signal replace-item mytheory subj-th-i-signal (old-th-i-signal
@@ -350,8 +351,10 @@ end
 
 to update-from-nature
   let actual-prob-suc 0
-  if mytheory = 0 [
-    set actual-prob-suc 1
+  ifelse mytheory = 0 [
+    set actual-prob-suc th1-aps
+  ][
+    set actual-prob-suc th2-aps
   ]
   let old-th-i-signal item mytheory subj-th-i-signal
   set subj-th-i-signal replace-item mytheory subj-th-i-signal (old-th-i-signal
