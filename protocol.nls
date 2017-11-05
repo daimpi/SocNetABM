@@ -173,10 +173,11 @@ end
 
 
 
-; reports 1 if scientists converged on the best theory (th1) by the end of the 
-; run, 0 otherwise
+; reports 1 if scientists (stably) converged on the best theory (th1) by the end
+; of the run, 0 otherwise
 to-report successful-run
-  ifelse count turtles with [mytheory = 0] = scientists [
+  ifelse not g-depressed-confidence and count turtles with [
+    mytheory = 0 and member? 0 cur-best-th] = scientists [
     report 1
   ][
     report 0

@@ -51,6 +51,7 @@ to setup [rs]
   let th-1-scientist count turtles with [mytheory = 0]
   let th-2-scientist count turtles with [mytheory = 1]
   set run-start-scientists-save (list th-1-scientist th-2-scientist)
+  set g-depressed-confidence false
   reset-ticks
 end
 
