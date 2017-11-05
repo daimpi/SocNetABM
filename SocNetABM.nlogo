@@ -17,6 +17,7 @@ to setup [rs]
   clear-all
   set rndseed rs
   random-seed rs
+  check-sanity
   init-hidden-variables
   init-converge-reporters
   set th-i-signal list th1-signal th2-signal
@@ -103,6 +104,24 @@ to go-stop
   while [not stop?][
     go
     with-local-randomness [set stop? exit-condition]
+  ]
+end
+
+
+
+
+
+; some basic sanity checks, which ensure that the chosen model parameters are
+; sensible
+to check-sanity
+  ifelse critical-interaction or nature-evidence-frequency > 0 [
+    if th1-aps < th2-aps [
+      error "th1-aps must be higher than th2-aps (th1 is the better theory)"
+    ]
+  ][
+   if th1-signal < th2-signal [
+    error "th1-signal must be higher than th2-signal (th1 is the better theory)"
+   ]
   ]
 end
 
