@@ -37,10 +37,13 @@ end
 ; theory to be among their best theories
 to-report converged
   let count-th1-scientists count turtles with [
-    mytheory = 0 and member? 0 cur-best-th]  
+    mytheory = 0 and member? 0 cur-best-th]
+  let count-th2-scientists count turtles with [
+    mytheory = 1 and member? 1 cur-best-th]
   ifelse count-th1-scientists = scientists 
-    or (nature-evidence-frequency = 0 and count turtles with [
-    mytheory = 1 and member? 1 cur-best-th] = scientists) [
+    or (count-th2-scientists = scientists and (nature-evidence-frequency = 0
+    or ([item 0 current-theory-info] of max-one-of turtles 
+    [item 0 current-theory-info] < th2-aps + strategy-threshold)))[
     ifelse count-th1-scientists > 0 [
       if last-converged-th = 1 [
         set converged-ticks 0
