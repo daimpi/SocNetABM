@@ -151,6 +151,9 @@ end
 
 ; generates the alphas & betas for the researchers priors
 to-report init-ab
+  if uninformative-priors [
+    report max-prior / 2
+  ]
   ; this formulation prevents drawing values of zero. It reports
   ; a random-float from the interval (0 , max-prior]
   report (max-prior - random-float max-prior)
@@ -483,10 +486,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-13
-308
-185
-341
+15
+307
+187
+340
 max-prior
 max-prior
 1
@@ -498,10 +501,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-14
-355
-186
-388
+238
+552
+410
+585
 jump-threshold
 jump-threshold
 0
@@ -528,10 +531,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-13
-399
-185
-432
+428
+554
+600
+587
 strategy-threshold
 strategy-threshold
 0
@@ -577,10 +580,10 @@ NIL
 0
 
 CHOOSER
-13
-444
-151
-489
+16
+400
+154
+445
 network-structure
 network-structure
 "cycle" "wheel" "complete"
@@ -606,10 +609,10 @@ PENS
 "not-best-theory" 1.0 0 -14835848 true "" "plot count turtles with [mytheory = 1]"
 
 SWITCH
-13
-500
-167
-533
+16
+456
+170
+489
 critical-interaction
 critical-interaction
 1
@@ -617,10 +620,10 @@ critical-interaction
 -1000
 
 SLIDER
-13
-548
-185
-581
+16
+504
+188
+537
 crit-strength
 crit-strength
 1 / 10000
@@ -632,10 +635,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-14
-592
-198
-625
+17
+548
+201
+581
 crit-jump-threshold
 crit-jump-threshold
 0
@@ -722,6 +725,17 @@ th2-aps
 1
 NIL
 HORIZONTAL
+
+SWITCH
+16
+357
+183
+390
+uninformative-priors
+uninformative-priors
+1
+1
+-1000
 
 @#$#@#$#@
 # UNDER CONSTRUCTION  
@@ -1330,6 +1344,9 @@ NetLogo 6.0.2
     </enumeratedValueSet>
     <enumeratedValueSet variable="th2-aps">
       <value value="0.499"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="uninformative-priors">
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
