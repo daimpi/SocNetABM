@@ -330,10 +330,10 @@ to evaluate-critically
     set actual-prob-suc th1-aps
   ][
     set crit-interactions-th2 crit-interactions-th2 + 1
+    set actual-prob-suc th2-aps
   ]
   if crit-interact-lock = 0 [
-    set crit-interact-lock crit-jump-threshold + 1
-    set actual-prob-suc th2-aps
+    set crit-interact-lock crit-jump-threshold + 1    
   ]
   let old-th-i-signal item mytheory subj-th-i-signal
   set subj-th-i-signal replace-item mytheory subj-th-i-signal (old-th-i-signal
