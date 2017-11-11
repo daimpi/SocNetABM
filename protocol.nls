@@ -21,7 +21,8 @@ to-report exit-condition
     ]
   ][
     set converged-ticks 0
-    if ticks >= max-ticks [
+    set g-confidence 0
+    if ticks >= max-ticks [ 
       set-converge-reporters-values
       report true
     ]
@@ -246,7 +247,8 @@ end
 
 
 ; reports the last time-point scientists converged. The + 1 correction is due 
-; to the way how `converged-ticks` is set.
+; to the assumption that this reporter is called after `exit-condition` had a
+; chance to update `converged-ticks`
 to-report round-converged
   report ticks - converged-ticks + 1
 end
@@ -337,14 +339,10 @@ end
 
 
 
-; reports the average confidence of scientists; if scientists haven't 
-; converged it reports 0
+; reports the global confidence of scientists at the point of convergence
 to-report average-confidence [rec?]
   let identifier "avgconfidence"
-  ifelse rec? [
-    if ticks >= max-ticks and not converged [
-      report (list identifier 0)
-    ]
+  ifelse rec? [    
     let avg-confidence g-confidence
     report (list identifier avg-confidence)
   ][
