@@ -6,7 +6,8 @@ globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   confidence-cutoff converged-ticks last-converged-th
   converge-reporters converge-reporters-values
   run-start-scientists-save rndseed g-confidence g-depressed-confidence
-  g-fast-sharing-enabled]
+  g-fast-sharing-enabled g-last-convlight-th g-conv-dur-th1 g-conv-dur-th2 
+  g-conv-start-th1 g-conv-start-th2]
 
 __includes ["protocol.nls"]
 
@@ -53,6 +54,11 @@ to setup [rs]
   let th-2-scientist count turtles with [mytheory = 1]
   set run-start-scientists-save (list th-1-scientist th-2-scientist)
   set g-depressed-confidence false
+  set g-last-convlight-th -1
+  set g-conv-dur-th1 []
+  set g-conv-dur-th2 []
+  set g-conv-start-th1 []
+  set g-conv-start-th2 []
   reset-ticks
 end
 

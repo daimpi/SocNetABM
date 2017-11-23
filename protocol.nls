@@ -5,6 +5,7 @@
 ; scientists have converged and have become sufficiently confident in their 
 ; beliefs
 to-report exit-condition
+  check-convergence-light
   ifelse converged [
     calc-confidence
     if converged-ticks = 0 [
@@ -27,6 +28,56 @@ to-report exit-condition
       report true
     ]
     report false
+  ]
+end
+
+
+
+
+
+to check-convergence-light
+  ifelse converged-light [
+    let cur-convlight-th 0
+    if not any? turtles with [mytheory = 0] [
+      set cur-convlight-th 1 
+    ]
+    let other-theory ((cur-convlight-th + 1) mod 2)    
+    if g-last-convlight-th != cur-convlight-th [
+      if g-last-convlight-th = other-theory [
+        set-convlight-dur ticks other-theory
+      ]
+      set-conv-start cur-convlight-th
+      set g-last-convlight-th cur-convlight-th
+    ]
+  ][
+    if g-last-convlight-th != -1 [      
+      set-convlight-dur ticks g-last-convlight-th      
+    ]
+    set g-last-convlight-th -1
+  ]
+end
+
+
+
+
+
+to set-convlight-dur [time theory]
+  ifelse theory = 0 [
+    set g-conv-dur-th1 lput (time - last g-conv-start-th1) g-conv-dur-th1
+  ][  
+    set g-conv-dur-th2 lput (time - last g-conv-start-th2) g-conv-dur-th2
+  ]
+end
+
+
+
+
+
+to set-conv-start [theory]
+  ifelse theory = 0 [
+    set g-conv-start-th1 lput ticks g-conv-start-th1
+  ][
+    set g-conv-start-th2 lput ticks g-conv-start-th2
   ]
 end
 
