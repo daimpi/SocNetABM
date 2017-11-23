@@ -13,9 +13,11 @@ to-report exit-condition
     ]
     set converged-ticks converged-ticks + 1
     ifelse g-confidence > confidence-cutoff [
+      set-convlight-dur round-converged g-last-convlight-th
       report true
     ][
       if ticks >= max-ticks [
+        set-convlight-dur round-converged g-last-convlight-th
         report true
       ]
       report false
@@ -25,6 +27,13 @@ to-report exit-condition
     set g-confidence 0
     if ticks >= max-ticks [ 
       set-converge-reporters-values
+      if g-last-convlight-th != -1 [
+        ; the round-converged reporter (which larger than steps) is
+        ; intentionally chosen here in order to cohere with the round-converged
+        ; value in the data and b/c the earliest round they could be properly
+        ; converged would be max-ticks + 1 in this case
+        set-convlight-dur round-converged g-last-convlight-th
+      ]
       report true
     ]
     report false
