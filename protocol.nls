@@ -426,13 +426,23 @@ end
 
 
 
-to-report longest-covergence [th#]
-  let conv-durations 0
-  ifelse th# = "th1" [    
-    set conv-durations g-conv-dur-th1
-  ][
-    set conv-durations g-conv-dur-th2
+to-report longest-covergence-start [th#]
+  let max-time-converged longest-covergence-dur th#
+  if max-time-converged = -1 [
+    report -1
   ]
+  let convergence-starts convergence-starts-report th#
+  let conv-durations converge-durations-report th#
+  let position-longest-conv position max-time-converged conv-durations
+  report item position-longest-conv convergence-starts
+end
+
+
+
+
+
+to-report longest-covergence-dur [th#]
+  let conv-durations converge-durations-report th#
   if empty? conv-durations [
     report -1
   ]
@@ -443,22 +453,22 @@ end
 
 
 
-to-report longest-covergence-start [th#]
-  let max-time-converged longest-covergence th#
-  if max-time-converged = -1 [
-    report -1
+to-report convergence-starts-report [th#]
+  if th# = "th1" [
+    report g-conv-start-th1
   ]
-  let convergence-starts 0
-  let conv-durations 0
-  ifelse th# = "th1" [
-    set convergence-starts g-conv-start-th1
-    set conv-durations g-conv-dur-th1
-  ][
-    set convergence-starts g-conv-start-th2
-    set conv-durations g-conv-dur-th2
+  report g-conv-start-th2
+end
+
+
+
+
+
+to-report converge-durations-report [th#]
+  if th# = "th1" [
+    report g-conv-dur-th1
   ]
-  let position-longest-conv position max-time-converged conv-durations
-  report item position-longest-conv convergence-starts
+  report g-conv-dur-th2
 end
 
 
@@ -466,12 +476,7 @@ end
 
 
 to-report time-converged [th#]
-  let conv-durations 0
-  ifelse th# = "th1" [    
-    set conv-durations g-conv-dur-th1
-  ][
-    set conv-durations g-conv-dur-th2
-  ]
+  let conv-durations converge-durations-report th#
   if empty? conv-durations [
     report -1
   ]
@@ -483,12 +488,7 @@ end
 
 
 to-report frequency-converged [th#]
-  let conv-durations 0
-  ifelse th# = "th1" [    
-    set conv-durations g-conv-dur-th1
-  ][
-    set conv-durations g-conv-dur-th2
-  ]
+  let conv-durations converge-durations-report th#
   if empty? conv-durations [
     report -1
   ]
