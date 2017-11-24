@@ -422,3 +422,75 @@ to-report run-start-scientists [th#]
   report item th# run-start-scientists-save
 end
 
+
+
+
+
+to-report longest-covergence [th#]
+  let conv-durations 0
+  ifelse th# = "th1" [    
+    set conv-durations g-conv-dur-th1
+  ][
+    set conv-durations g-conv-dur-th2
+  ]
+  if empty? conv-durations [
+    report -1
+  ]
+  report max conv-durations
+end
+
+
+
+
+
+to-report longest-covergence-start [th#]
+  let max-time-converged longest-covergence th#
+  if max-time-converged = -1 [
+    report -1
+  ]
+  let convergence-starts 0
+  let conv-durations 0
+  ifelse th# = "th1" [
+    set convergence-starts g-conv-start-th1
+    set conv-durations g-conv-dur-th1
+  ][
+    set convergence-starts g-conv-start-th2
+    set conv-durations g-conv-dur-th2
+  ]
+  let position-longest-conv position max-time-converged conv-durations
+  report item position-longest-conv convergence-starts
+end
+
+
+
+
+
+to-report time-converged [th#]
+  let conv-durations 0
+  ifelse th# = "th1" [    
+    set conv-durations g-conv-dur-th1
+  ][
+    set conv-durations g-conv-dur-th2
+  ]
+  if empty? conv-durations [
+    report -1
+  ]
+  report sum conv-durations
+end
+
+
+
+
+
+to-report frequency-converged [th#]
+  let conv-durations 0
+  ifelse th# = "th1" [    
+    set conv-durations g-conv-dur-th1
+  ][
+    set conv-durations g-conv-dur-th2
+  ]
+  if empty? conv-durations [
+    report -1
+  ]
+  report length conv-durations
+end
