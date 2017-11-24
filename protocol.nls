@@ -494,3 +494,19 @@ to-report frequency-converged [th#]
   ]
   report length conv-durations
 end
+
+
+
+
+
+to-report center-of-convergence [th#]
+  let cur-cum-conv-dur cum-conv-dur th#
+  if cur-cum-conv-dur <= 0 [
+    report -1
+  ]
+  let convergence-starts convergence-starts-report th#
+  let conv-durations converge-durations-report th#
+  let weighted-convergences sum (map [ [curstart curlength] -> 
+    2 * curstart * curlength + curlength ^ 2] convergence-starts conv-durations)
+  report weighted-convergences / (2 * cur-cum-conv-dur)
+end
