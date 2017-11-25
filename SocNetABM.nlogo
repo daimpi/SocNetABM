@@ -6,7 +6,7 @@ globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   confidence-cutoff converged-ticks last-converged-th
   converge-reporters converge-reporters-values
   run-start-scientists-save rndseed g-confidence g-depressed-confidence
-  g-fast-sharing-enabled g-last-convlight-th g-conv-dur-th1 g-conv-dur-th2 
+  g-fast-sharing-enabled g-last-convlight-th g-conv-dur-th1 g-conv-dur-th2
   g-conv-start-th1 g-conv-start-th2]
 
 __includes ["protocol.nls"]
@@ -339,7 +339,7 @@ to evaluate-critically
     set actual-prob-suc th2-aps
   ]
   if crit-interact-lock = 0 [
-    set crit-interact-lock crit-jump-threshold + 1    
+    set crit-interact-lock crit-jump-threshold + 1
   ]
   let old-th-i-signal item mytheory subj-th-i-signal
   set subj-th-i-signal replace-item mytheory subj-th-i-signal (old-th-i-signal
@@ -1306,6 +1306,16 @@ NetLogo 6.0.2
     <metric>average-confidence false</metric>
     <metric>g-confidence</metric>
     <metric>rndseed</metric>
+    <metric>longest-covergence-start "th1"</metric>
+    <metric>longest-covergence-start "th2"</metric>
+    <metric>longest-covergence-dur "th1"</metric>
+    <metric>longest-covergence-dur "th2"</metric>
+    <metric>cum-conv-dur "th1"</metric>
+    <metric>cum-conv-dur "th2"</metric>
+    <metric>frequency-converged "th1"</metric>
+    <metric>frequency-converged "th2"</metric>
+    <metric>center-of-convergence "th1"</metric>
+    <metric>center-of-convergence "th2"</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>

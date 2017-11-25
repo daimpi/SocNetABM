@@ -44,6 +44,8 @@ end
 
 
 
+; manages the recording of convergence trackers during the run via the 
+; respective globals
 to check-convergence-light
   ifelse converged-light [
     let cur-convlight-th 0
@@ -70,6 +72,10 @@ end
 
 
 
+; records the duration of a convergence during the run
+; arguments:
+; - time = the time at which the current convergence ended, type: integer
+; - theory = the theory from which scientist de-converged type: integer
 to set-convlight-dur [time theory]
   ifelse theory = 0 [
     set g-conv-dur-th1 lput (time - last g-conv-start-th1) g-conv-dur-th1
@@ -82,6 +88,9 @@ end
 
 
 
+; records the time-point at which scientists convergence on `theory`
+; arguments:
+; - theory = the theory on which scientist just converged type: integer
 to set-conv-start [theory]
   ifelse theory = 0 [
     set g-conv-start-th1 lput ticks g-conv-start-th1
@@ -426,6 +435,8 @@ end
 
 
 
+; reports the round which marks the beginning of the longest lasting connected 
+; convergence on th# 
 to-report longest-covergence-start [th#]
   let max-time-converged longest-covergence-dur th#
   if max-time-converged = -1 [
@@ -441,6 +452,7 @@ end
 
 
 
+; reports for how long the longest connected convergence on th# lasted
 to-report longest-covergence-dur [th#]
   let conv-durations converge-durations-report th#
   if empty? conv-durations [
@@ -453,6 +465,8 @@ end
 
 
 
+; reports the list with rounds which mark all the beginnings of convergence on 
+; th#
 to-report convergence-starts-report [th#]
   if th# = "th1" [
     report g-conv-start-th1
@@ -463,7 +477,7 @@ end
 
 
 
-
+; reports the list with durations of all the convergences on th#
 to-report converge-durations-report [th#]
   if th# = "th1" [
     report g-conv-dur-th1
@@ -475,7 +489,9 @@ end
 
 
 
-to-report time-converged [th#]
+; reports the cumulative time which scientists were converged on th# over the 
+; course of the run
+to-report cum-conv-dur [th#]
   let conv-durations converge-durations-report th#
   if empty? conv-durations [
     report -1
@@ -487,6 +503,7 @@ end
 
 
 
+; reports how often scientists converged on th# over the course of the run
 to-report frequency-converged [th#]
   let conv-durations converge-durations-report th#
   if empty? conv-durations [
@@ -499,6 +516,8 @@ end
 
 
 
+; reports the (weighted-)average round where scientists were converged on th#,
+; weighted by the length of the convergence
 to-report center-of-convergence [th#]
   let cur-cum-conv-dur cum-conv-dur th#
   if cur-cum-conv-dur <= 0 [
