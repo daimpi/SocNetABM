@@ -5,6 +5,7 @@
 ; scientists have converged and have become sufficiently confident in their 
 ; beliefs
 to-report exit-condition
+  check-convergence-light
   ifelse converged [
     calc-confidence
     if converged-ticks = 0 [
@@ -12,17 +13,27 @@ to-report exit-condition
     ]
     set converged-ticks converged-ticks + 1
     ifelse g-confidence > confidence-cutoff [
+      set-convlight-dur round-converged g-last-convlight-th
       report true
     ][
       if ticks >= max-ticks [
+        set-convlight-dur round-converged g-last-convlight-th
         report true
       ]
       report false
     ]
   ][
     set converged-ticks 0
-    if ticks >= max-ticks [
+    set g-confidence 0
+    if ticks >= max-ticks [ 
       set-converge-reporters-values
+      if g-last-convlight-th != -1 [
+        ; the round-converged reporter (which larger than steps) is
+        ; intentionally chosen here in order to cohere with the round-converged
+        ; value in the data and b/c the earliest round they could be properly
+        ; converged would be max-ticks + 1 in this case
+        set-convlight-dur round-converged g-last-convlight-th
+      ]
       report true
     ]
     report false
@@ -33,13 +44,76 @@ end
 
 
 
-; reports true if all scientists converged to one theory and consider this theory
-; to be among their best theories
+; manages the recording of convergence trackers during the run via the 
+; respective globals
+to check-convergence-light
+  ifelse converged-light [
+    let cur-convlight-th 0
+    if not any? turtles with [mytheory = 0] [
+      set cur-convlight-th 1 
+    ]
+    let other-theory ((cur-convlight-th + 1) mod 2)    
+    if g-last-convlight-th != cur-convlight-th [
+      if g-last-convlight-th = other-theory [
+        set-convlight-dur ticks other-theory
+      ]
+      set-conv-start cur-convlight-th
+      set g-last-convlight-th cur-convlight-th
+    ]
+  ][
+    if g-last-convlight-th != -1 [      
+      set-convlight-dur ticks g-last-convlight-th      
+    ]
+    set g-last-convlight-th -1
+  ]
+end
+
+
+
+
+
+; records the duration of a convergence during the run
+; arguments:
+; - time = the time at which the current convergence ended, type: integer
+; - theory = the theory from which scientist de-converged type: integer
+to set-convlight-dur [time theory]
+  ifelse theory = 0 [
+    set g-conv-dur-th1 lput (time - last g-conv-start-th1) g-conv-dur-th1
+  ][  
+    set g-conv-dur-th2 lput (time - last g-conv-start-th2) g-conv-dur-th2
+  ]
+end
+
+
+
+
+
+; records the time-point at which scientists convergence on `theory`
+; arguments:
+; - theory = the theory on which scientist just converged type: integer
+to set-conv-start [theory]
+  ifelse theory = 0 [
+    set g-conv-start-th1 lput ticks g-conv-start-th1
+  ][
+    set g-conv-start-th2 lput ticks g-conv-start-th2
+  ]
+end
+
+
+
+
+
+; reports true if all scientists converged to one theory and consider this 
+; theory to be among their best theories
 to-report converged
   let count-th1-scientists count turtles with [
-    mytheory = 0 and member? 0 cur-best-th]  
-  ifelse count-th1-scientists = scientists or
-    count turtles with [mytheory = 1 and member? 1 cur-best-th] = scientists [
+    mytheory = 0 and member? 0 cur-best-th]
+  let count-th2-scientists count turtles with [
+    mytheory = 1 and member? 1 cur-best-th]
+  ifelse count-th1-scientists = scientists 
+    or (count-th2-scientists = scientists and (nature-evidence-frequency = 0
+    or ([item 0 current-theory-info] of max-one-of turtles 
+    [item 0 current-theory-info] < th2-aps + strategy-threshold)))[
     ifelse count-th1-scientists > 0 [
       if last-converged-th = 1 [
         set converged-ticks 0
@@ -61,27 +135,59 @@ end
 
 
 
+; reports whether all scientists are on the same theory
+to-report converged-light
+  if any? turtles with [mytheory = 0] and any? turtles with [mytheory = 1] [
+    report false
+  ]
+  report true
+end
+
+
+
+
+
+
 ; Calculates how confident the researcher is in the fact that her current best 
 ; theory is actually the best theory (i.e. how unlikely it is that she will 
 ; change her mind). This calculation only makes sense in case researchers have
 ; converged.
 to calc-confidence
-  if converged-ticks = 0 [
+  ;force-update is a boolean. It is true if scientists just converged this round
+  let force-update? (converged-ticks = 0)
+  if force-update? [
     set g-depressed-confidence false
   ]
   if g-depressed-confidence [stop]
-  let stop? false
+  let force-nature-update? 0
+  if not force-update? [
+    ; the -1 correction in ticks compensates for the fact that this procedure
+    ; will be called after the go procedure and therefore the tick-counter has 
+    ; already advanced one step further
+    set force-nature-update? (nature-evidence-frequency > 0 
+      and ticks > 1 
+      and (ticks - 1) mod nature-evidence-frequency = 0)
+  ]
+  let cur-theory [mytheory] of one-of turtles
+  let other-theory ((cur-theory + 1) mod 2)
+  let avg-neighbor-signal-complete 0
+  if g-fast-sharing-enabled and (force-update? or force-nature-update?) [
+    set avg-neighbor-signal-complete mean [item cur-theory subj-th-i-signal] of 
+        turtles
+  ]
   ask turtles [
-    if stop? [stop]
-    let belief-to-beat item ((mytheory + 1) mod 2) current-theory-info
+    let belief-to-beat item other-theory current-theory-info
       - strategy-threshold
     ; not entirerly sure whether this cutoff at 0 is needed, but I've added it 
     ; for cautionarly reasons
-    set belief-to-beat max (list 0 belief-to-beat)
-    let cur-theory mytheory
-    if converged-ticks = 0 [
-      set avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
-        (turtle-set link-neighbors self)
+    set belief-to-beat max (list 0 belief-to-beat)    
+    if force-update? or force-nature-update? [
+      ifelse g-fast-sharing-enabled [
+        set avg-neighbor-signal avg-neighbor-signal-complete
+      ][
+        set avg-neighbor-signal mean [item cur-theory subj-th-i-signal] of 
+          share-group
+      ]
     ]
     ; if the scientist would be given sufficient time for her belief to
     ; converge to the average signal of her and her link-neighbors, would
@@ -89,7 +195,6 @@ to calc-confidence
     ; confident enough.
     if avg-neighbor-signal <= belief-to-beat [
       set confidence 0
-      set stop? true
       set g-depressed-confidence true
       stop
     ]
@@ -100,7 +205,6 @@ to calc-confidence
     let delta item mytheory current-theory-info - belief-to-beat
     if (2 * alpha - 1) * delta <= belief-to-beat [
       set confidence 0
-      set stop? true
       stop
     ]
     let exit-probability 0.5 + 0.5 * erf (
@@ -115,11 +219,7 @@ to calc-confidence
      set confidence 1
     ]
   ]
-  ifelse stop? [
-    set g-confidence 0
-  ][
-    set g-confidence reduce * [confidence] of turtles
-  ]
+  set g-confidence reduce * [confidence] of turtles
 end
 
 
@@ -143,10 +243,11 @@ end
 
 
 
-; reports 1 if scientists converged on the best theory (th1) by the end of the 
-; run, 0 otherwise
+; reports 1 if scientists (stably) converged on the best theory (th1) by the end
+; of the run, 0 otherwise
 to-report successful-run
-  ifelse count turtles with [mytheory = 0] = scientists [
+  ifelse not g-depressed-confidence and count turtles with [
+    mytheory = 0 and member? 0 cur-best-th] = scientists [
     report 1
   ][
     report 0
@@ -215,7 +316,8 @@ end
 
 
 ; reports the last time-point scientists converged. The + 1 correction is due 
-; to the way how `converged-ticks` is set.
+; to the assumption that this reporter is called after `exit-condition` had a
+; chance to update `converged-ticks`
 to-report round-converged
   report ticks - converged-ticks + 1
 end
@@ -224,19 +326,22 @@ end
 
 
 
-; reports the current average signal for th# and updates the global
-; `th-i-signal` accordingly
-to-report average-signal [th#]
-  if critical-interaction and th-i-signal = (list th1-signal th2-signal) [
-    set th-i-signal [0 0]
-    ask turtles [
-      set th-i-signal (map + th-i-signal subj-th-i-signal) 
-    ]
-    set th-i-signal map [ cur-th-signal -> cur-th-signal / scientists]
-      th-i-signal
+; reports the average signal for th# at the time of final convergence
+; arguments:
+; - th# = theory, type: string
+; - rec = recording?, type: boolean
+to-report average-signal [th# rec?]
+  let identifier "avgsignal"
+  ifelse rec? [
+    let avg-signal-th1 mean [item 0 subj-th-i-signal] of turtles
+    let avg-signal-th2 mean [item 1 subj-th-i-signal] of turtles
+    report (list identifier avg-signal-th1 avg-signal-th2)
+  ][
+    set th# translate-from-string th#
+    let avg-signal but-first first filter [curitem -> 
+      first curitem = identifier] converge-reporters-values
+    report item th# avg-signal
   ]
-  set th# translate-from-string th#
-  report item th# th-i-signal
 end
 
 
@@ -303,14 +408,10 @@ end
 
 
 
-; reports the average confidence of scientists; if scientists haven't 
-; converged it reports 0
+; reports the global confidence of scientists at the point of convergence
 to-report average-confidence [rec?]
   let identifier "avgconfidence"
-  ifelse rec? [
-    if ticks >= max-ticks and not converged [
-      report (list identifier 0)
-    ]
+  ifelse rec? [    
     let avg-confidence g-confidence
     report (list identifier avg-confidence)
   ][
@@ -330,3 +431,101 @@ to-report run-start-scientists [th#]
   report item th# run-start-scientists-save
 end
 
+
+
+
+
+; reports the round which marks the beginning of the longest lasting connected 
+; convergence on th# 
+to-report longest-covergence-start [th#]
+  let max-time-converged longest-covergence-dur th#
+  if max-time-converged = -1 [
+    report -1
+  ]
+  let convergence-starts convergence-starts-report th#
+  let conv-durations converge-durations-report th#
+  let position-longest-conv position max-time-converged conv-durations
+  report item position-longest-conv convergence-starts
+end
+
+
+
+
+
+; reports for how long the longest connected convergence on th# lasted
+to-report longest-covergence-dur [th#]
+  let conv-durations converge-durations-report th#
+  if empty? conv-durations [
+    report -1
+  ]
+  report max conv-durations
+end
+
+
+
+
+
+; reports the list with rounds which mark all the beginnings of convergence on 
+; th#
+to-report convergence-starts-report [th#]
+  if th# = "th1" [
+    report g-conv-start-th1
+  ]
+  report g-conv-start-th2
+end
+
+
+
+
+; reports the list with durations of all the convergences on th#
+to-report converge-durations-report [th#]
+  if th# = "th1" [
+    report g-conv-dur-th1
+  ]
+  report g-conv-dur-th2
+end
+
+
+
+
+
+; reports the cumulative time which scientists were converged on th# over the 
+; course of the run
+to-report cum-conv-dur [th#]
+  let conv-durations converge-durations-report th#
+  if empty? conv-durations [
+    report -1
+  ]
+  report sum conv-durations
+end
+
+
+
+
+
+; reports how often scientists converged on th# over the course of the run
+to-report frequency-converged [th#]
+  let conv-durations converge-durations-report th#
+  if empty? conv-durations [
+    report -1
+  ]
+  report length conv-durations
+end
+
+
+
+
+
+; reports the (weighted-)average round where scientists were converged on th#,
+; weighted by the length of the convergence
+to-report center-of-convergence [th#]
+  let cur-cum-conv-dur cum-conv-dur th#
+  if cur-cum-conv-dur <= 0 [
+    report -1
+  ]
+  let convergence-starts convergence-starts-report th#
+  let conv-durations converge-durations-report th#
+  let weighted-convergences sum (map [ [curstart curlength] -> 
+    2 * curstart * curlength + curlength ^ 2] convergence-starts conv-durations)
+  report weighted-convergences / (2 * cur-cum-conv-dur)
+end
