@@ -6,7 +6,8 @@ globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   confidence-cutoff converged-ticks last-converged-th
   converge-reporters converge-reporters-values
   run-start-scientists-save rndseed g-confidence g-depressed-confidence
-  g-fast-sharing-enabled]
+  g-fast-sharing-enabled g-last-convlight-th g-conv-dur-th1 g-conv-dur-th2
+  g-conv-start-th1 g-conv-start-th2]
 
 __includes ["protocol.nls"]
 
@@ -17,6 +18,7 @@ to setup [rs]
   clear-all
   set rndseed rs
   random-seed rs
+  check-sanity
   init-hidden-variables
   init-converge-reporters
   set th-i-signal list th1-signal th2-signal
@@ -51,6 +53,12 @@ to setup [rs]
   let th-1-scientist count turtles with [mytheory = 0]
   let th-2-scientist count turtles with [mytheory = 1]
   set run-start-scientists-save (list th-1-scientist th-2-scientist)
+  set g-depressed-confidence false
+  set g-last-convlight-th -1
+  set g-conv-dur-th1 []
+  set g-conv-dur-th2 []
+  set g-conv-start-th1 []
+  set g-conv-start-th2 []
   reset-ticks
 end
 
@@ -109,6 +117,24 @@ end
 
 
 
+; some basic sanity checks, which ensure that the chosen model parameters are
+; sensible
+to check-sanity
+  ifelse critical-interaction or nature-evidence-frequency > 0 [
+    if th1-aps < th2-aps [
+      error "th1-aps must be higher than th2-aps (th1 is the better theory)"
+    ]
+  ][
+   if th1-signal < th2-signal [
+    error "th1-signal must be higher than th2-signal (th1 is the better theory)"
+   ]
+  ]
+end
+
+
+
+
+
 ; initializes the hidden variables (= not set in the interface)
 to init-hidden-variables
   set confidence-cutoff 1 - (1 / 10 ^ 4)
@@ -131,6 +157,9 @@ end
 
 ; generates the alphas & betas for the researchers priors
 to-report init-ab
+  if uninformative-priors [
+    report max-prior / 2
+  ]
   ; this formulation prevents drawing values of zero. It reports
   ; a random-float from the interval (0 , max-prior]
   report (max-prior - random-float max-prior)
@@ -304,9 +333,10 @@ to evaluate-critically
   let actual-prob-suc 0
   ifelse mytheory = 0 [
     set crit-interactions-th1 crit-interactions-th1 + 1
-    set actual-prob-suc 1
+    set actual-prob-suc th1-aps
   ][
     set crit-interactions-th2 crit-interactions-th2 + 1
+    set actual-prob-suc th2-aps
   ]
   if crit-interact-lock = 0 [
     set crit-interact-lock crit-jump-threshold + 1
@@ -350,8 +380,10 @@ end
 
 to update-from-nature
   let actual-prob-suc 0
-  if mytheory = 0 [
-    set actual-prob-suc 1
+  ifelse mytheory = 0 [
+    set actual-prob-suc th1-aps
+  ][
+    set actual-prob-suc th2-aps
   ]
   let old-th-i-signal item mytheory subj-th-i-signal
   set subj-th-i-signal replace-item mytheory subj-th-i-signal (old-th-i-signal
@@ -388,9 +420,9 @@ to set-researcher-colors
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+234
 10
-647
+671
 448
 -1
 -1
@@ -415,10 +447,10 @@ ticks
 30.0
 
 SLIDER
-13
-160
-185
-193
+235
+466
+407
+499
 th1-signal
 th1-signal
 0.1
@@ -430,10 +462,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-14
-206
-186
-239
+236
+512
+408
+545
 th2-signal
 th2-signal
 0.1
@@ -460,10 +492,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-13
-308
-185
-341
+15
+307
+187
+340
 max-prior
 max-prior
 1
@@ -475,10 +507,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-14
-355
-186
-388
+238
+552
+410
+585
 jump-threshold
 jump-threshold
 0
@@ -505,10 +537,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-13
-399
-185
-432
+428
+554
+600
+587
 strategy-threshold
 strategy-threshold
 0
@@ -554,20 +586,20 @@ NIL
 0
 
 CHOOSER
-13
-444
-151
-489
+16
+400
+154
+445
 network-structure
 network-structure
 "cycle" "wheel" "complete"
 0
 
 PLOT
-663
-12
-863
-162
+692
+21
+892
+171
 Popularity
 Time steps
 scientists
@@ -583,10 +615,10 @@ PENS
 "not-best-theory" 1.0 0 -14835848 true "" "plot count turtles with [mytheory = 1]"
 
 SWITCH
-13
-500
-167
-533
+16
+456
+170
+489
 critical-interaction
 critical-interaction
 1
@@ -594,10 +626,10 @@ critical-interaction
 -1000
 
 SLIDER
-13
-548
-185
-581
+16
+504
+188
+537
 crit-strength
 crit-strength
 1 / 10000
@@ -609,10 +641,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-14
-592
-198
-625
+17
+548
+201
+581
 crit-jump-threshold
 crit-jump-threshold
 0
@@ -641,25 +673,25 @@ NIL
 0
 
 SLIDER
-211
-457
-383
-490
+15
+162
+187
+195
 max-ticks
 max-ticks
 0
 100000
-10000.0
+100000.0
 100
 1
 NIL
 HORIZONTAL
 
 SLIDER
-211
-501
-413
-534
+15
+206
+217
+239
 nature-evidence-frequency
 nature-evidence-frequency
 0
@@ -669,6 +701,47 @@ nature-evidence-frequency
 1
 NIL
 HORIZONTAL
+
+SLIDER
+426
+468
+598
+501
+th1-aps
+th1-aps
+0
+1
+0.5
+0.001
+1
+NIL
+HORIZONTAL
+
+SLIDER
+426
+512
+598
+545
+th2-aps
+th2-aps
+0
+1
+0.499
+0.001
+1
+NIL
+HORIZONTAL
+
+SWITCH
+16
+357
+183
+390
+uninformative-priors
+uninformative-priors
+1
+1
+-1000
 
 @#$#@#$#@
 # UNDER CONSTRUCTION  
@@ -1205,7 +1278,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.1
+NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -1233,6 +1306,16 @@ NetLogo 6.0.1
     <metric>average-confidence false</metric>
     <metric>g-confidence</metric>
     <metric>rndseed</metric>
+    <metric>longest-covergence-start "th1"</metric>
+    <metric>longest-covergence-start "th2"</metric>
+    <metric>longest-covergence-dur "th1"</metric>
+    <metric>longest-covergence-dur "th2"</metric>
+    <metric>cum-conv-dur "th1"</metric>
+    <metric>cum-conv-dur "th2"</metric>
+    <metric>frequency-converged "th1"</metric>
+    <metric>frequency-converged "th2"</metric>
+    <metric>center-of-convergence "th1"</metric>
+    <metric>center-of-convergence "th2"</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>
@@ -1267,10 +1350,19 @@ NetLogo 6.0.1
       <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-ticks">
-      <value value="10000"/>
+      <value value="100000"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="nature-evidence-frequency">
       <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="th1-aps">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="th2-aps">
+      <value value="0.499"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="uninformative-priors">
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
