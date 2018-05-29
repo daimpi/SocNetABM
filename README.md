@@ -1,5 +1,7 @@
 # UNDER CONSTRUCTION  
 
+[![Join the chat at https://gitter.im/SocNetABM/Lobby](https://badges.gitter.im/SocNetABM/Lobby.svg)](https://gitter.im/SocNetABM/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # SocNetABM
 NetLogo agent-based model (ABM) of scientific interaction aimed at examining how different degrees of connectedness of 
 scientists impact their efficiency in knowledge acquisition. The model is built on the basis of Zollman’s (2010) ABM
