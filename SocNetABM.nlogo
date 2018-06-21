@@ -7,7 +7,7 @@ globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   converge-reporters converge-reporters-values
   run-start-scientists-save rndseed g-confidence g-depressed-confidence
   g-fast-sharing-enabled g-last-convlight-th g-conv-dur-th1 g-conv-dur-th2
-  g-conv-start-th1 g-conv-start-th2]
+  g-conv-start-th1 g-conv-start-th2 g-exit-condition?]
 
 __includes ["protocol.nls"]
 
@@ -59,6 +59,7 @@ to setup [rs]
   set g-conv-dur-th2 []
   set g-conv-start-th1 []
   set g-conv-start-th2 []
+  set g-exit-condition? false
   reset-ticks
 end
 
@@ -67,7 +68,7 @@ end
 
 
 ; one go = one round
-to go
+to go-core
   ask turtles [
     pull
   ]
@@ -102,14 +103,19 @@ end
 
 
 
-
-; runs until the exit-condition is met
-to go-stop
-  let stop? 0
-  with-local-randomness [set stop? exit-condition]
-  while [not stop?][
-    go
-    with-local-randomness [set stop? exit-condition]
+; advances the model one round with- or without evaluating the exit-condition
+; depending on the argument:
+; exit? = exit-condition evaluated?, type: boolean
+to go [exit?]
+  with-local-randomness [
+    if exit? and not g-exit-condition? [
+      set g-exit-condition? exit-condition
+    ]
+  ]
+  ifelse g-exit-condition? and exit? [
+    stop
+  ][
+    go-core
   ]
 end
 
@@ -573,8 +579,8 @@ BUTTON
 15
 164
 48
-NIL
 go
+go false
 T
 1
 T
@@ -660,9 +666,9 @@ BUTTON
 64
 124
 97
-NIL
 go-stop
-NIL
+go true
+T
 1
 T
 OBSERVER
@@ -870,6 +876,12 @@ If there is a researcher for whom, if given sufficient time for her belief to co
 
 When the network is a de facto complete network, scientists might be able to utilize a more performant sharing procedure (the second condition is that they have to be converged): `share-fast`. This variable signals whether or not such a de-facto complete network is present in the current run.  
 
+#### g-exit-condition?
+
+* format: boolean
+* example: false  
+
+If the `exit-condition` reporter is evaluated the variable will be set to `true` in case the the exit-condition is met, `false` otherwise. Positive evaluation of the exit-condition marks the end of a run.  
 
 ### Turtles-own
 
@@ -1278,15 +1290,14 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
   <experiment name="zm-base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup new-seed</setup>
-    <go>go</go>
-    <exitCondition>exit-condition</exitCondition>
+    <go>go true</go>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
     <metric>avg-indiff-time</metric>

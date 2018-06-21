@@ -132,6 +132,13 @@ If there is a researcher for whom, if given sufficient time for her belief to co
 
 When the network is a de facto complete network, scientists might be able to utilize a more performant sharing procedure (the second condition is that they have to be converged): `share-fast`. This variable signals whether or not such a de-facto complete network is present in the current run.  
 
+#### g-exit-condition?
+
+* format: boolean
+* example: false  
+
+If the `exit-condition` reporter is evaluated the variable will be set to `true` in case the the exit-condition is met, `false` otherwise. Positive evaluation of the exit-condition marks the end of a run.  
+
 
 ### Turtles-own
 

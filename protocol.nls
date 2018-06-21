@@ -329,7 +329,7 @@ end
 ; reports the average signal for th# at the time of final convergence
 ; arguments:
 ; - th# = theory, type: string
-; - rec = recording?, type: boolean
+; - rec? = recording?, type: boolean
 to-report average-signal [th# rec?]
   let identifier "avgsignal"
   ifelse rec? [
@@ -362,7 +362,7 @@ end
 ; reports the average beliefs among the researchers
 ; arguments:
 ; - th# = theory, type: string
-; - rec = recording?, type: boolean
+; - rec? = recording?, type: boolean
 to-report average-belief [th# rec?]
   let identifier "avgbelief"
   ifelse rec? [
