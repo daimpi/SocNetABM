@@ -67,17 +67,38 @@ end
 
 
 
+; advances the model one round with- or without evaluating the exit-condition
+; depending on the argument:
+; exit? = exit-condition evaluated?, type: boolean
+to go [exit?]
+  let fast-sharing? 0
+  with-local-randomness [
+    set fast-sharing? (g-fast-sharing-enabled and converged-light)
+    if exit? and not g-exit-condition? [
+      set g-exit-condition? exit-condition
+    ]
+  ]
+  ifelse g-exit-condition? and exit? [
+    stop
+  ][
+    go-core fast-sharing?
+  ]
+end
+
+
+
+
+
 ; one go = one round
-to go-core
+to go-core [fast-sharing?]
   ask turtles [
     pull
   ]
-  let fast-sharing (g-fast-sharing-enabled and converged-light)
-  if fast-sharing [
+  if fast-sharing? [
     share-fast
   ]
   ask turtles [
-    if not fast-sharing [
+    if not fast-sharing? [
       share
     ]
     calc-posterior
@@ -98,25 +119,6 @@ to go-core
     act-on-strategies
   ]
   tick
-end
-
-
-
-
-; advances the model one round with- or without evaluating the exit-condition
-; depending on the argument:
-; exit? = exit-condition evaluated?, type: boolean
-to go [exit?]
-  with-local-randomness [
-    if exit? and not g-exit-condition? [
-      set g-exit-condition? exit-condition
-    ]
-  ]
-  ifelse g-exit-condition? and exit? [
-    stop
-  ][
-    go-core
-  ]
 end
 
 
