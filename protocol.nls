@@ -529,3 +529,14 @@ to-report center-of-convergence [th#]
     2 * curstart * curlength + curlength ^ 2] convergence-starts conv-durations)
   report weighted-convergences / (2 * cur-cum-conv-dur)
 end
+
+
+
+
+
+to compute-popularity
+  set g-research-time (map + g-research-time g-myscientists)
+  let th-1-scientist count turtles with [mytheory = 0]
+  let th-2-scientist scientists - th-1-scientist
+  set g-myscientists (list th-1-scientist th-2-scientist)
+end

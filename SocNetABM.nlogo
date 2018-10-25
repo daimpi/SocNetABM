@@ -7,7 +7,8 @@ globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   converge-reporters converge-reporters-values
   run-start-scientists-save rndseed g-confidence g-depressed-confidence
   g-fast-sharing-enabled g-last-convlight-th g-conv-dur-th1 g-conv-dur-th2
-  g-conv-start-th1 g-conv-start-th2 g-exit-condition?]
+  g-conv-start-th1 g-conv-start-th2 g-exit-condition? g-myscientists
+  g-research-time]
 
 __includes ["protocol.nls"]
 
@@ -53,6 +54,7 @@ to setup [rs]
   let th-1-scientist count turtles with [mytheory = 0]
   let th-2-scientist count turtles with [mytheory = 1]
   set run-start-scientists-save (list th-1-scientist th-2-scientist)
+  set g-myscientists run-start-scientists-save
   set g-depressed-confidence false
   set g-last-convlight-th -1
   set g-conv-dur-th1 []
@@ -60,6 +62,7 @@ to setup [rs]
   set g-conv-start-th1 []
   set g-conv-start-th2 []
   set g-exit-condition? false
+  set g-research-time [0 0]
   reset-ticks
 end
 
@@ -117,6 +120,9 @@ to go-core [fast-sharing?]
   ask turtles with [crit-interact-lock = 0
     and not member? mytheory cur-best-th] [
     act-on-strategies
+  ]
+  with-local-randomness [
+    compute-popularity
   ]
   tick
 end
@@ -619,8 +625,8 @@ true
 false
 "" ""
 PENS
-"best theory" 1.0 0 -2674135 true "" "plot count turtles with [mytheory = 0]"
-"not-best-theory" 1.0 0 -14835848 true "" "plot count turtles with [mytheory = 1]"
+"best theory" 1.0 0 -2674135 true "" "plot item 0 g-myscientists"
+"not-best-theory" 1.0 0 -14835848 true "" "plot item 1 g-myscientists"
 
 SWITCH
 16
