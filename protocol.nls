@@ -540,3 +540,24 @@ to compute-popularity
   let th-2-scientist scientists - th-1-scientist
   set g-myscientists (list th-1-scientist th-2-scientist)
 end
+
+
+
+
+
+; reports the time scientists spent researching each theory before they finally 
+; converged
+; arguments:
+; - th# = theory, type: string
+; - rec? = recording?, type: boolean
+to-report research-time [th# rec?]
+  let identifier "restime"
+  ifelse rec? [
+    report (fput identifier g-research-time)
+  ][
+    set th# translate-from-string th#
+    let res-time but-first first filter [curitem -> 
+      first curitem = identifier] converge-reporters-values
+    report item th# res-time
+  ]
+end
