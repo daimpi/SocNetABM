@@ -132,6 +132,27 @@ If there is a researcher for whom, if given sufficient time for her belief to co
 
 When the network is a de facto complete network, scientists might be able to utilize a more performant sharing procedure (the second condition is that they have to be converged): `share-fast`. This variable signals whether or not such a de-facto complete network is present in the current run.  
 
+#### g-exit-condition?
+
+* format: boolean
+* example: false  
+
+If the `exit-condition` reporter is evaluated the variable will be set to `true` in case the the exit-condition is met, `false` otherwise. Positive evaluation of the exit-condition marks the end of a run.  
+
+#### g-myscientists
+
+* format: list
+* example: [3 7]  
+
+Reflects how many scientist are currently researching each theory: the first entry in the list is for theory one the 2nd entry for theory two.  
+  
+#### g-research-time
+
+* format: list
+* example: [350 129]  
+
+Records how much each theory has been researched over the course of the run: each round each researcher who pulls from the slot machine for a given theory increases the counter for this theory by one. The first entry in the list is for theory one the 2nd entry for theory two.  
+
 
 ### Turtles-own
 

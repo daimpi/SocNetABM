@@ -329,7 +329,7 @@ end
 ; reports the average signal for th# at the time of final convergence
 ; arguments:
 ; - th# = theory, type: string
-; - rec = recording?, type: boolean
+; - rec? = recording?, type: boolean
 to-report average-signal [th# rec?]
   let identifier "avgsignal"
   ifelse rec? [
@@ -362,7 +362,7 @@ end
 ; reports the average beliefs among the researchers
 ; arguments:
 ; - th# = theory, type: string
-; - rec = recording?, type: boolean
+; - rec? = recording?, type: boolean
 to-report average-belief [th# rec?]
   let identifier "avgbelief"
   ifelse rec? [
@@ -528,4 +528,36 @@ to-report center-of-convergence [th#]
   let weighted-convergences sum (map [ [curstart curlength] -> 
     2 * curstart * curlength + curlength ^ 2] convergence-starts conv-durations)
   report weighted-convergences / (2 * cur-cum-conv-dur)
+end
+
+
+
+
+
+to compute-popularity
+  set g-research-time (map + g-research-time g-myscientists)
+  let th-1-scientist count turtles with [mytheory = 0]
+  let th-2-scientist scientists - th-1-scientist
+  set g-myscientists (list th-1-scientist th-2-scientist)
+end
+
+
+
+
+
+; reports the time scientists spent researching each theory before they finally 
+; converged
+; arguments:
+; - th# = theory, type: string
+; - rec? = recording?, type: boolean
+to-report research-time [th# rec?]
+  let identifier "restime"
+  ifelse rec? [
+    report (fput identifier g-research-time)
+  ][
+    set th# translate-from-string th#
+    let res-time but-first first filter [curitem -> 
+      first curitem = identifier] converge-reporters-values
+    report item th# res-time
+  ]
 end

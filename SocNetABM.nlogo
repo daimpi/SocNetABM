@@ -7,7 +7,8 @@ globals [th-i-signal indiff-count crit-interactions-th1 crit-interactions-th2
   converge-reporters converge-reporters-values
   run-start-scientists-save rndseed g-confidence g-depressed-confidence
   g-fast-sharing-enabled g-last-convlight-th g-conv-dur-th1 g-conv-dur-th2
-  g-conv-start-th1 g-conv-start-th2]
+  g-conv-start-th1 g-conv-start-th2 g-exit-condition? g-myscientists
+  g-research-time]
 
 __includes ["protocol.nls"]
 
@@ -53,12 +54,15 @@ to setup [rs]
   let th-1-scientist count turtles with [mytheory = 0]
   let th-2-scientist count turtles with [mytheory = 1]
   set run-start-scientists-save (list th-1-scientist th-2-scientist)
+  set g-myscientists run-start-scientists-save
   set g-depressed-confidence false
   set g-last-convlight-th -1
   set g-conv-dur-th1 []
   set g-conv-dur-th2 []
   set g-conv-start-th1 []
   set g-conv-start-th2 []
+  set g-exit-condition? false
+  set g-research-time [0 0]
   reset-ticks
 end
 
@@ -66,17 +70,38 @@ end
 
 
 
+; advances the model one round with- or without evaluating the exit-condition
+; depending on the argument:
+; exit? = exit-condition evaluated?, type: boolean
+to go [exit?]
+  let fast-sharing? 0
+  with-local-randomness [
+    set fast-sharing? (g-fast-sharing-enabled and converged-light)
+    if exit? and not g-exit-condition? [
+      set g-exit-condition? exit-condition
+    ]
+  ]
+  ifelse g-exit-condition? and exit? [
+    stop
+  ][
+    go-core fast-sharing?
+  ]
+end
+
+
+
+
+
 ; one go = one round
-to go
+to go-core [fast-sharing?]
   ask turtles [
     pull
   ]
-  let fast-sharing (g-fast-sharing-enabled and converged-light)
-  if fast-sharing [
+  if fast-sharing? [
     share-fast
   ]
   ask turtles [
-    if not fast-sharing [
+    if not fast-sharing? [
       share
     ]
     calc-posterior
@@ -96,21 +121,10 @@ to go
     and not member? mytheory cur-best-th] [
     act-on-strategies
   ]
-  tick
-end
-
-
-
-
-
-; runs until the exit-condition is met
-to go-stop
-  let stop? 0
-  with-local-randomness [set stop? exit-condition]
-  while [not stop?][
-    go
-    with-local-randomness [set stop? exit-condition]
+  with-local-randomness [
+    compute-popularity
   ]
+  tick
 end
 
 
@@ -148,7 +162,7 @@ end
 to init-converge-reporters
   set converge-reporters (list [ -> average-belief 0 true]
   [ -> average-cum-successes 0 true] [ -> average-confidence true]
-  [ -> average-signal 0 true])
+  [ -> average-signal 0 true] [ -> research-time 0 true])
 end
 
 
@@ -573,8 +587,8 @@ BUTTON
 15
 164
 48
-NIL
 go
+go false
 T
 1
 T
@@ -611,8 +625,8 @@ true
 false
 "" ""
 PENS
-"best theory" 1.0 0 -2674135 true "" "plot count turtles with [mytheory = 0]"
-"not-best-theory" 1.0 0 -14835848 true "" "plot count turtles with [mytheory = 1]"
+"best theory" 1.0 0 -2674135 true "" "plot item 0 g-myscientists"
+"not-best-theory" 1.0 0 -14835848 true "" "plot item 1 g-myscientists"
 
 SWITCH
 16
@@ -660,9 +674,9 @@ BUTTON
 64
 124
 97
-NIL
 go-stop
-NIL
+go true
+T
 1
 T
 OBSERVER
@@ -869,6 +883,27 @@ If there is a researcher for whom, if given sufficient time for her belief to co
 * example: true  
 
 When the network is a de facto complete network, scientists might be able to utilize a more performant sharing procedure (the second condition is that they have to be converged): `share-fast`. This variable signals whether or not such a de-facto complete network is present in the current run.  
+
+#### g-exit-condition?
+
+* format: boolean
+* example: false  
+
+If the `exit-condition` reporter is evaluated the variable will be set to `true` in case the the exit-condition is met, `false` otherwise. Positive evaluation of the exit-condition marks the end of a run.  
+
+#### g-myscientists
+
+* format: list
+* example: [3 7]  
+
+Reflects how many scientist are currently researching each theory: the first entry in the list is for theory one the 2nd entry for theory two.  
+  
+#### g-research-time
+
+* format: list
+* example: [350 129]  
+
+Records how much each theory has been researched over the course of the run: each round each researcher who pulls from the slot machine for a given theory increases the counter for this theory by one. The first entry in the list is for theory one the 2nd entry for theory two.  
 
 
 ### Turtles-own
@@ -1278,15 +1313,14 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
   <experiment name="zm-base-run" repetitions="10000" runMetricsEveryStep="false">
     <setup>setup new-seed</setup>
-    <go>go</go>
-    <exitCondition>exit-condition</exitCondition>
+    <go>go true</go>
     <metric>successful-run</metric>
     <metric>average-jumps</metric>
     <metric>avg-indiff-time</metric>
@@ -1316,6 +1350,8 @@ NetLogo 6.0.2
     <metric>frequency-converged "th2"</metric>
     <metric>center-of-convergence "th1"</metric>
     <metric>center-of-convergence "th2"</metric>
+    <metric>research-time "th1" false</metric>
+    <metric>research-time "th2" false</metric>
     <steppedValueSet variable="scientists" first="3" step="1" last="11"/>
     <enumeratedValueSet variable="th1-signal">
       <value value="0.5"/>
